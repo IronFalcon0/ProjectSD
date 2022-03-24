@@ -1,0 +1,3 @@
+IpClient: localhost
+ucDriveServerPort: 6000
+UsersInformationfile: Content_files/users_info
