@@ -10,7 +10,6 @@ public class Server {
     private static int serverTCPPort;
     private static int serverUDPPort = 5000;
     private static int serverFilePort;
-    protected static Boolean isMain = false;
     public static String bars = "\\";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
@@ -18,17 +17,18 @@ public class Server {
     public static volatile ArrayList<ClientInfo> clientsInfo = new ArrayList<ClientInfo>();
 
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws InterruptedException {
         loadConfigurations();
         loadUserInfo(usersInfoStr);
 
         // init UDP threads
         // listen for hearthbeats
         //new UDPConnectionListener(serverUDPPort);
-        new UDPHeartbeats(serverUDPPort);
+        Thread secondServer = new UDPHeartbeats(serverUDPPort);
+
 
         // wait to be main server to accept connections
-        //while(!isMain){}
+        secondServer.join();
 
 
 

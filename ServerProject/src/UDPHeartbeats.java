@@ -65,9 +65,9 @@ public class UDPHeartbeats extends Thread{
             }
             aSocket.close();
             System.out.println("no connection to main server");
-            // turn server to main
-            Server.isMain = true;
+            // turn server to main, init thread to listen to secondary servers
             new UDPConnectionListener(serverUDPPort);
+            // ends current thread to allow the main process to accept connections from clients
 
 
 
