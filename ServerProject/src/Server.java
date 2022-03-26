@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Server {
-    private static int serverPort;
+    private static int serverTCPPort;
+    private static int serverUDPPort = 5000;
     private static int serverFilePort;
+    protected static Boolean isMain = false;
     public static String bars = "\\";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
@@ -20,7 +22,17 @@ public class Server {
         loadConfigurations();
         loadUserInfo(usersInfoStr);
 
-        try (ServerSocket listenSocketClient = new ServerSocket(serverPort)) {
+        // init UDP threads
+        // listen for hearthbeats
+        //new UDPConnectionListener(serverUDPPort);
+        new UDPHeartbeats(serverUDPPort);
+
+        // wait to be main server to accept connections
+        //while(!isMain){}
+
+
+
+        try (ServerSocket listenSocketClient = new ServerSocket(serverTCPPort)) {
             while(true) {
                 // creates a thread for each client
                 Socket clientSocket = listenSocketClient.accept();
@@ -41,7 +53,7 @@ public class Server {
             scannerFile.nextLine();
             String line = scannerFile.nextLine();
             String[] ucDriveServer = line.split(" ");
-            serverPort = Integer.parseInt(ucDriveServer[1]);
+            serverTCPPort = Integer.parseInt(ucDriveServer[1]);
 
             line = scannerFile.nextLine();
             String[] usersPath = line.split(" ");
