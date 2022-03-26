@@ -22,7 +22,11 @@ public class Server {
         loadUserInfo(usersInfoStr);
 
         // init UDP threads
-        new UDPConnection(serverUDPPort);
+        // listen for hearthbeats
+        new UDPConnectionListener(serverUDPPort);
+        new UDPHeartbeats(serverUDPPort);
+        // send hearthbeats
+        //new ....
 
         // receive heartbeats
         // send hearts
