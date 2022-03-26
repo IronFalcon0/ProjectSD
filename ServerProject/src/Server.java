@@ -7,7 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Server {
-    private static int serverPort;
+    private static int serverTCPPort;
+    private static int serverUDPPort = 5000;
     private static int serverFilePort;
     public static String bars = "\\";
     private static String usersInfoStr;
@@ -20,7 +21,21 @@ public class Server {
         loadConfigurations();
         loadUserInfo(usersInfoStr);
 
-        try (ServerSocket listenSocketClient = new ServerSocket(serverPort)) {
+        // init UDP threads
+        new UDPConnection(serverUDPPort);
+
+        // receive heartbeats
+        // send hearts
+
+        // if first
+        // send heartbeats -> no response
+        // papel principal e deixa de mandar heartbeats
+
+        // senão
+        // continua a mandar heatbeats
+
+
+        try (ServerSocket listenSocketClient = new ServerSocket(serverTCPPort)) {
             while(true) {
                 // creates a thread for each client
                 Socket clientSocket = listenSocketClient.accept();
@@ -41,7 +56,7 @@ public class Server {
             scannerFile.nextLine();
             String line = scannerFile.nextLine();
             String[] ucDriveServer = line.split(" ");
-            serverPort = Integer.parseInt(ucDriveServer[1]);
+            serverTCPPort = Integer.parseInt(ucDriveServer[1]);
 
             line = scannerFile.nextLine();
             String[] usersPath = line.split(" ");
