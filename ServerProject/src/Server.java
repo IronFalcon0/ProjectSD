@@ -10,6 +10,7 @@ public class Server {
     private static int serverTCPPort;
     private static int serverUDPPort = 5000;
     private static int serverFilePort;
+    protected static Boolean isMain = false;
     public static String bars = "\\";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
@@ -23,20 +24,12 @@ public class Server {
 
         // init UDP threads
         // listen for hearthbeats
-        new UDPConnectionListener(serverUDPPort);
+        //new UDPConnectionListener(serverUDPPort);
         new UDPHeartbeats(serverUDPPort);
-        // send hearthbeats
-        //new ....
 
-        // receive heartbeats
-        // send hearts
+        // wait to be main server to accept connections
+        //while(!isMain){}
 
-        // if first
-        // send heartbeats -> no response
-        // papel principal e deixa de mandar heartbeats
-
-        // senão
-        // continua a mandar heatbeats
 
 
         try (ServerSocket listenSocketClient = new ServerSocket(serverTCPPort)) {

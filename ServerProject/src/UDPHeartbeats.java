@@ -7,7 +7,7 @@ public class UDPHeartbeats extends Thread{
     private static int serverUDPPort;
     private static String serverHost;
     private static final int maxfailedrounds = 3;
-    private static final int timeout = 5000;
+    private static final int timeout = 3000;
     private static final int bufsize = 4096;
     private static final int period = 2000;
 
@@ -63,9 +63,11 @@ public class UDPHeartbeats extends Thread{
                     e.printStackTrace();
                 }
             }
-
+            aSocket.close();
             System.out.println("no connection to main server");
             // turn server to main
+            Server.isMain = true;
+            new UDPConnectionListener(serverUDPPort);
 
 
 
