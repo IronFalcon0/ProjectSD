@@ -63,11 +63,9 @@ class Connection extends Thread {
                     continue;
                 }
                 // trim command
-                System.out.println(command);
                 command = command.strip();
 
                 String[] commandParts = command.split(":", 3);
-                System.out.println(commandParts[0]);
 
                 switch (commandParts[0]) {
                     case "LOGIN":
@@ -79,7 +77,7 @@ class Connection extends Thread {
 
                         } else {
                             System.out.println("Client connected");
-                            out.writeUTF(ci.directoryC);
+                            out.writeUTF(ci.directoryS);
                         }
                         continue;
 
@@ -105,17 +103,8 @@ class Connection extends Thread {
                     case "cd":
                         if (commandParts[1].equals("server")) {
                             String resp = changeCurDir(command);
-                            if (resp.contains("Home")) {
-                                System.out.println("Server dir changed: " + resp);
-                                out.writeUTF("server:" + resp + ">");
-                            } else {
-                                out.writeUTF(resp);
-                            }
+                            out.writeUTF(resp);
                         }
-                        break;
-
-                    case "CLIENT_DIR_UPD":                                                              // client dir changed, stores the new dir
-                        ci.directoryC = command.substring(command.indexOf(":") + 1, command.length());
                         break;
 
                     case "GET":                                                                         // client get file from server current dir
@@ -157,15 +146,6 @@ class Connection extends Thread {
             out.writeUTF(respond);
             return;
 
-            //new session
-            /*String newLogin = in.readUTF();
-            ci = Login(newLogin);
-            if (ci == null) {
-                out.writeUTF("NOTVALID");
-                clientSocket.close();
-            } else {
-                out.writeUTF(ci.directoryC);
-            }*/
         }
         catch (Exception e){
             //System.out.println(e.getMessage());
@@ -188,21 +168,29 @@ class Connection extends Thread {
                 // verify if user already in base dir
                 Path path = Paths.get(ci.directoryS);
                 if (!path.toString().equals("") && path.toString().equals("Home")) {
-                    return path.toString();
+                    return "server:" + path.toString() + ">";
                 } else {
                     ci.directoryS = path.getParent().toString();
-                    return ci.directoryS;
+                    return "server:" + ci.directoryS + ">";
                 }
             }
 
             // go to a sub-folder
-            Path path = Paths.get(Server.baseDirServer + ci.directoryS + Server.bars + newDir);
-            if (Files.exists(path) && new File(path.toString()).isDirectory()) {
+            File folder = new File(Server.baseDirServer + ci.directoryS + Server.bars + newDir);
+            if (folder.exists() && folder.isDirectory()) {
                 ci.directoryS = ci.directoryS + Server.bars + newDir;
 
-                return ci.directoryS;
+                return "server:" + ci.directoryS + ">";
+            } else if (!folder.exists()) {
+                if (folder.mkdir()) {
+                    System.out.println(folder);
+                    ci.directoryS = folder.toString();
+                    return "server:" + ci.directoryS + ">";
+                } else {
+                    return "couldn't create folder";
+                }
             }
-            return "Folder doesn't exist";
+            return "couldn't create folder";
         } catch (Exception e) {
             //System.out.println(e.getMessage());
         }

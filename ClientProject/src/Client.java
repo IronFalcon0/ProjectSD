@@ -9,10 +9,11 @@ public class Client {
     private static int serverSocket;
     private static String host;
     private static String bars = "\\\\";
-    public static String currentDir = new String();
+    public static String shortClientDir = new String();
+    public static String clientDir = new String();
     private static String baseDirConf = "Content_files" + bars + "conf_file";
-    private static String baseDirClientInit = "Content_files" + bars + "Client" + bars;
-    public static String baseDirClient = baseDirClientInit;
+    //private static String baseDirClientInit = "Content_files" + bars + "Client" + bars;
+    //public static String baseDirClient = baseDirClientInit;
     private static final int BLOCK_SIZE_FILE = 8192;
 
 
@@ -39,7 +40,7 @@ public class Client {
 
             try(Scanner sc = new Scanner(System.in)) {
                 while (true) {
-                    System.out.printf(currentDir + ">");
+                    System.out.printf(shortClientDir + ">");
                     String command = sc.nextLine();
 
                     if (command.equals("")) {
@@ -78,10 +79,8 @@ public class Client {
 
                             } else if (commandParts[1].equals("client")) {
                                 String resp = changeCurDir(command);
-                                if (resp.contains("Home")) {
-                                    resp = resp.substring(resp.indexOf("Home"), resp.length());
-                                    out.writeUTF("CLIENT_DIR_UPD:" + resp);
-                                } else {
+
+                                if (!resp.equals("")) {
                                     System.out.println(resp);
                                 }
                             }
@@ -114,7 +113,7 @@ public class Client {
                                 commandParts[1] = commandParts[1] + " " +commandParts[2];
                             }
 
-                            String fileName = baseDirClient + currentDir + bars + commandParts[1];
+                            String fileName = clientDir + bars + commandParts[1];
 
 
                             File file = new File(fileName);
@@ -166,29 +165,26 @@ public class Client {
             if (!parts[0].equals("cd") || !parts[1].equals("client")) {
                 return "wrong syntax: cd client *folder_name*";
             }
-            String newDir = command.substring(command.indexOf("client") + 7, command.length());
+            //String newDir = command.substring(command.indexOf("client") + 7, command.length());
 
-            if (newDir.equals("")) {
+            if (parts.length != 3) {
                 return "invalid path";
             }
 
             // go to parent folder
-            if (newDir.contains("..")) {
-                // verify if user already in base dir
-                if (currentDir.equals("Home")) {
-                    return currentDir;
-                } else {
-                    Path path = Paths.get(currentDir).getParent();
-                    currentDir = path.toString();
-                    return path.toString();
-                }
+            if (parts[2].contains("..")) {
+                Path path = Paths.get(clientDir).getParent();
+                clientDir = path.toString();
+                getShortDir();
+                return "";
             }
 
             // go to a sub-folder
-            Path path = Paths.get(baseDirClient + currentDir + bars + newDir);
+            Path path = Paths.get(clientDir + bars + parts[2]);
             if (Files.exists(path) && new File(path.toString()).isDirectory()) {
-                currentDir = currentDir + bars + newDir;
-                return path.toString();
+                clientDir += bars + parts[2];
+                getShortDir();
+                return "";
             }
             return "folder doesn't exist";
         } catch (Exception e) {
@@ -199,7 +195,7 @@ public class Client {
 
     // list files and folder in current client dir
     private static String listFilesCurDir() {
-        File[] files = new File(baseDirClient + currentDir).listFiles();
+        File[] files = new File(clientDir).listFiles();
         String str = "";
         if (files == null) {
             return str;
@@ -274,10 +270,10 @@ public class Client {
                 return false;
             } else {
                 System.out.println("Login with success");
-                baseDirClient += userName + bars;
+                System.out.println("server:" + respond + ">");
+                clientDir = System.getProperty("user.dir");
 
-                VerifyFolder(userName);
-                currentDir = respond;
+                getShortDir();
                 return true;
             }
 
@@ -289,9 +285,25 @@ public class Client {
         return false;
     }
 
+    private static void getShortDir() {
+        int count = 0;
+        File tempFile = new File(clientDir);
+        shortClientDir = tempFile.getName();
+
+        while(count < 2) {
+            String parentDir = tempFile.getParent();
+            if (parentDir == null) {
+                break;
+            }
+            tempFile = new File(parentDir);
+            shortClientDir = tempFile.getName() + File.separatorChar + shortClientDir;
+            count++;
+        }
+    }
+
     // verify if client side folder is initialized
-    private static void VerifyFolder(String username) {
-        Path path = Paths.get(baseDirClientInit + username);
+    /*private static void VerifyFolder(String username) {
+        Path path = Paths.get(clientDir);
         if (!Files.exists(path)) {
             try {
                 Files.createDirectories(path);
@@ -309,7 +321,7 @@ public class Client {
                 System.out.println("IO: " + e.getMessage());
             }
         }
-    }
+    }*/
 
     // receive file from server
     private static void getFile(String respond) {
@@ -321,7 +333,7 @@ public class Client {
             byte [] buffer  = new byte [BLOCK_SIZE_FILE];
 
             InputStream is = fileSocket.getInputStream();
-            FileOutputStream fos = new FileOutputStream(Client.baseDirClient + Client.currentDir + bars + strPort[2]);
+            FileOutputStream fos = new FileOutputStream(clientDir + bars + strPort[2]);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
             // write file
@@ -351,7 +363,7 @@ public class Client {
         try (Socket fileSocket = new Socket(host, Integer.parseInt(strPort[1]))){
 
             // open file and convert it to bin array
-            File fileSend = new File(Client.baseDirClient + Client.currentDir + bars + strPort[2]);
+            File fileSend = new File(clientDir + bars + strPort[2]);
             byte[] mybytearray = new byte[(int) fileSend.length()];
 
             FileInputStream fis = new FileInputStream(fileSend);

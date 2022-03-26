@@ -99,10 +99,7 @@ public class Server {
         try {
             FileWriter userInfoFile = new FileWriter(usersInfoStr);
             for (ClientInfo c: clientsInfo) {
-                userInfoFile.write(c.name + " " + c.password + " " + c.directoryC + "\n");
-                if (c.name.equals(userName)) {
-                    c.directoryS = "Home";
-                }
+                userInfoFile.write(c.name + " " + c.password + " " + c.directoryS + "\n");
             }
             userInfoFile.close();
         } catch (IOException e) {
