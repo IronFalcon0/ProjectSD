@@ -26,7 +26,7 @@ class Connection extends Thread {
     }
 
     // verify user info
-    private ClientInfo Login (String loginStr) throws IOException {
+    private ClientInfo Login () throws IOException {
         try {
             out.writeUTF("login");
 
@@ -69,7 +69,7 @@ class Connection extends Thread {
 
                 switch (commandParts[0]) {
                     case "LOGIN":
-                        ci = Login(command);
+                        ci = Login();
 
                         if (ci == null) {
                             out.writeUTF("NOT_VALID");
@@ -109,13 +109,8 @@ class Connection extends Thread {
 
                     case "GET":                                                                         // client get file from server current dir
                         String fileName = Server.baseDirServer + ci.directoryS + Server.bars + command.substring(command.indexOf(":") + 1, command.length());
+                        sendFile(fileName);
 
-                        File file = new File(fileName);
-                        if (file.exists() && file.isFile()) {
-                            sendFile(fileName);
-                        } else {
-                            out.writeUTF("server:" + ci.directoryS + "> " + "File not found");
-                        }
                         break;
 
                     case "SEND":                                                                        // client send file to server to current dir
@@ -220,19 +215,20 @@ class Connection extends Thread {
     // server sends a file to the client
     private void sendFile(String fileName) {
         try {
-            String[] parts = fileName.split(Server.bars);
-            String fName = parts[parts.length-1];
+            File file = new File(fileName);
+            if (!file.exists() || !file.isFile()) {
+                out.writeUTF("server:" + ci.directoryS + "> " + "File not found");
+                return;
+            }
 
             ServerSocket fileS = new ServerSocket(0);
-            out.writeUTF("CLIENT_CONNECT_GET:" + fileS.getLocalPort() + ":" + fName);     // pass client port to connect
+            out.writeUTF("CLIENT_CONNECT_GET:" + fileS.getLocalPort() + ":" + file.getName());     // pass client port to connect
 
             Socket fileSocket = fileS.accept();
 
+            byte[] mybytearray = new byte[(int) file.length()];
 
-            File fileSend = new File(fileName);
-            byte[] mybytearray = new byte[(int) fileSend.length()];
-
-            FileInputStream fis = new FileInputStream(fileSend);
+            FileInputStream fis = new FileInputStream(file);
             BufferedInputStream bis = new BufferedInputStream(fis);
             bis.read(mybytearray,0,mybytearray.length);
 
@@ -249,7 +245,7 @@ class Connection extends Thread {
             os.close();
             fileSocket.close();
 
-            System.out.println("File sent: " + fileName);
+            System.out.println("File sent: " + file.getName());
 
         } catch (IOException e) {
             System.out.println(e.getMessage());

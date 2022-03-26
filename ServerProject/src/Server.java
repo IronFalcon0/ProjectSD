@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 public class Server {
     private static int serverPort;
     private static int serverFilePort;
-    public static String bars = "\\\\";
+    public static String bars = "\\";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
     public static String baseDirServer = "Content_files" + bars + "Server" + bars;

@@ -8,17 +8,14 @@ import java.io.*;
 public class Client {
     private static int serverSocket;
     private static String host;
-    private static String bars = "\\\\";
+    private static String bars = "\\";
     public static String shortClientDir = new String();
     public static String clientDir = new String();
     private static String baseDirConf = "Content_files" + bars + "conf_file";
-    //private static String baseDirClientInit = "Content_files" + bars + "Client" + bars;
-    //public static String baseDirClient = baseDirClientInit;
     private static final int BLOCK_SIZE_FILE = 8192;
 
 
     public static void main(String args[]) {
-        //loadConfigurations();
 
         if (args.length != 2) {
             System.out.println("wrong args given");
@@ -165,7 +162,6 @@ public class Client {
             if (!parts[0].equals("cd") || !parts[1].equals("client")) {
                 return "wrong syntax: cd client *folder_name*";
             }
-            //String newDir = command.substring(command.indexOf("client") + 7, command.length());
 
             if (parts.length != 3) {
                 return "invalid path";
@@ -210,29 +206,6 @@ public class Client {
 
         }
         return str;
-    }
-
-
-    // load vars from configuration file
-    private static void loadConfigurations() {
-        try {
-            File configurationFile = new File(baseDirConf);
-            Scanner scannerFile = new Scanner(configurationFile);
-            scannerFile.reset();
-
-            String line = scannerFile.nextLine();
-            String[] hostInfo = line.split(" ");
-            host = hostInfo[1];
-
-            line = scannerFile.nextLine();
-            String[] ucDriveServer = line.split(" ");
-            serverSocket = Integer.parseInt(ucDriveServer[1]);
-
-            scannerFile.close();
-
-        } catch (FileNotFoundException e) {
-            System.out.println("Error loading usersInfo: " +e.getMessage());
-        }
     }
 
 
@@ -300,28 +273,6 @@ public class Client {
             count++;
         }
     }
-
-    // verify if client side folder is initialized
-    /*private static void VerifyFolder(String username) {
-        Path path = Paths.get(clientDir);
-        if (!Files.exists(path)) {
-            try {
-                Files.createDirectories(path);
-            } catch (IOException e) {
-                System.out.println("IO: " + e.getMessage());
-            }
-        }
-
-        //verify if user folder already exists. If not, creates it
-        path = Paths.get(baseDirClientInit + username + bars + "Home");
-        if (!Files.exists(path)) {
-            try {
-                Files.createDirectories(path);
-            } catch (IOException e) {
-                System.out.println("IO: " + e.getMessage());
-            }
-        }
-    }*/
 
     // receive file from server
     private static void getFile(String respond) {
