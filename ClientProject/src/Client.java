@@ -142,6 +142,10 @@ public class Client {
                             System.out.println(respond);
                             while(!Login(in, out));
                             break;
+
+                        default:
+                            System.out.println("Command not found");
+                            out.writeUTF("Command not found");
                     }
                 }
             }
