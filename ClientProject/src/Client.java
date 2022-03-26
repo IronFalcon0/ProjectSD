@@ -145,7 +145,6 @@ public class Client {
 
                         default:
                             System.out.println("Command not found");
-                            out.writeUTF("Command not found");
                     }
                 }
             }
