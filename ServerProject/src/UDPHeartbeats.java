@@ -4,16 +4,18 @@ import java.nio.ByteBuffer;
 import java.util.Enumeration;
 
 public class UDPHeartbeats extends Thread{
-    private static int serverUDPPort;
+    private static int ownUDPPort;
+    private static int otherUDPPort;
     private static String serverHost;
     private static final int maxfailedrounds = 3;
     private static final int timeout = 3000;
     private static final int bufsize = 4096;
     private static final int period = 2000;
 
-    public UDPHeartbeats(int port){
-        serverUDPPort = port;
-        serverHost = "localhost";
+    public UDPHeartbeats(String ip, int ownPort, int otherPort){
+        ownUDPPort = ownPort;
+        otherUDPPort = otherPort;
+        serverHost = ip;
         this.start();
     }
 
@@ -28,45 +30,31 @@ public class UDPHeartbeats extends Thread{
 
             while(failedheartbeats < maxfailedrounds) {
                 try {
-                    int heartbeat = 200;
-                    byte[] buf = ByteBuffer.allocate(4).putInt(heartbeat).array();
 
-                    InetAddress aHost = InetAddress.getByName(serverHost);
-                    DatagramPacket request = new DatagramPacket(buf, buf.length, aHost, serverUDPPort);
-                    aSocket.send(request);
+                    sendHeartbeat(aSocket, otherUDPPort);
 
-                    aSocket.setSoTimeout(timeout);
+                    System.out.println("Port used: " + otherUDPPort);
 
-                    byte[] buffer = new byte[bufsize];
-                    DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-                    aSocket.receive(reply);
-
-                    DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buffer, 0, reply.getLength()));
-                    int respond = dis.readInt();
-
-
-                    System.out.println("Recebeu: " + respond);
-                    if (respond == 200)
+                    if (receiveRespondHB(aSocket)) {
                         failedheartbeats = 0;
-                    else
+                    } else {
                         failedheartbeats++;
+                        System.out.println("Failed heartbeats: " + failedheartbeats);
+                    }
+
 
                     Thread.sleep(period);
 
-
-                } catch (SocketTimeoutException ste) {
-                        failedheartbeats++;
-                        System.out.println("Failed heartbeats: " + failedheartbeats);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (IOException e){
                     e.printStackTrace();
                 }
             }
             aSocket.close();
             System.out.println("no connection to main server");
             // turn server to main, init thread to listen to secondary servers
-            new UDPConnectionListener(serverUDPPort);
+            new UDPConnectionListener(ownUDPPort);
             // ends current thread to allow the main process to accept connections from clients
 
 
@@ -74,6 +62,44 @@ public class UDPHeartbeats extends Thread{
 
         } catch (SocketException e) {
             System.out.println("Socket: " + e.getMessage());
+        }
+    }
+
+    private boolean sendHeartbeat(DatagramSocket aSocket, int port) throws UnknownHostException {
+        try {
+            int heartbeat = 200;
+            byte[] buf = ByteBuffer.allocate(4).putInt(heartbeat).array();
+
+            InetAddress aHost = InetAddress.getByName(serverHost);
+            DatagramPacket request = new DatagramPacket(buf, buf.length, aHost, port);
+            aSocket.send(request);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private boolean receiveRespondHB(DatagramSocket aSocket) {
+        try {
+            aSocket.setSoTimeout(timeout);
+
+            byte[] buffer = new byte[bufsize];
+            DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+            aSocket.receive(reply);
+
+            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buffer, 0, reply.getLength()));
+            int respond = dis.readInt();
+            System.out.println("Recebeu: " + respond);
+
+            if (respond == 200) {
+                return true;
+            }
+            return false;
+
+        } catch (SocketTimeoutException ste) {
+            return false;
+        } catch (IOException e) {
+            return false;
         }
     }
 

@@ -1,3 +1,5 @@
 IpClient: localhost
 ucDriveServerPort: 6000
 UsersInformationfile: Content_files/users_info
+UDPPortServer1: 5000
+UDPPortServer2: 5001

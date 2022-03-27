@@ -8,8 +8,10 @@ import java.nio.file.Paths;
 
 public class Server {
     private static int serverTCPPort;
-    private static int serverUDPPort = 5000;
+    private static int ownUDPPort;
+    private static int otherUDPPort;
     private static int serverFilePort;
+    private static String serverIP;
     public static String bars = "\\";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
@@ -18,13 +20,20 @@ public class Server {
 
 
     public static void main(String args[]) throws InterruptedException {
+        if (args.length != 2) {
+            System.out.println("java Client *ownServerPort* *otherServerPort*");
+            return;
+        } else {
+            ownUDPPort = Integer.parseInt(args[0]);
+            otherUDPPort = Integer.parseInt(args[1]);
+        }
         loadConfigurations();
         loadUserInfo(usersInfoStr);
 
         // init UDP threads
         // listen for hearthbeats
         //new UDPConnectionListener(serverUDPPort);
-        Thread secondServer = new UDPHeartbeats(serverUDPPort);
+        Thread secondServer = new UDPHeartbeats(serverIP, ownUDPPort, otherUDPPort);
 
 
         // wait to be main server to accept connections
@@ -50,14 +59,27 @@ public class Server {
             File configurationFile = new File(baseDirConf);
             Scanner scannerFile = new Scanner(configurationFile);
 
-            scannerFile.nextLine();
             String line = scannerFile.nextLine();
+            String[] stringParts = line.split(" ");
+            serverIP =  stringParts[1];
+
+            line = scannerFile.nextLine();
             String[] ucDriveServer = line.split(" ");
             serverTCPPort = Integer.parseInt(ucDriveServer[1]);
 
             line = scannerFile.nextLine();
             String[] usersPath = line.split(" ");
             usersInfoStr = usersPath[1];
+
+            line = scannerFile.nextLine();
+            stringParts = line.split(" ");
+            //server1UDPPort = Integer.parseInt(stringParts[1]);
+
+            line = scannerFile.nextLine();
+            stringParts = line.split(" ");
+            //server2UDPPort = Integer.parseInt(stringParts[1]);
+
+
 
             scannerFile.close();
 
