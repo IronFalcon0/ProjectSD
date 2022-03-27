@@ -8,7 +8,11 @@ import java.nio.file.Paths;
 
 public class Server {
     private static int serverTCPPort;
-    private static int serverUDPPort = 5000;
+    protected static int serverUDPPort = 5000;
+    protected static String serverHost = "localhost";
+    protected static int UDPFilesPortMain = 1000;
+    protected static int UDPFilesPortSec = 1001;
+    protected static final int bufsize = 4096;
     private static int serverFilePort;
     public static String bars = "\\";
     private static String usersInfoStr;
@@ -24,7 +28,7 @@ public class Server {
         // init UDP threads
         // listen for hearthbeats
         //new UDPConnectionListener(serverUDPPort);
-        Thread secondServer = new UDPHeartbeats(serverUDPPort);
+        Thread secondServer = new UDPHeartbeats();
 
 
         // wait to be main server to accept connections
