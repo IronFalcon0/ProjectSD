@@ -104,7 +104,8 @@ public class UDPConnectionListener extends Thread{
                         limit = fileContent.length;
                     else
                         limit = counter + Server.bufsize;
-                    DatagramPacket filePacket = new DatagramPacket(fileContent, counter, limit, dp.getAddress(), dp.getPort());
+                    byte packetData[] = Arrays.copyOfRange(fileContent, counter, limit);
+                    DatagramPacket filePacket = new DatagramPacket(packetData, 0, packetData.length, dp.getAddress(), dp.getPort());
                     dsoc.send(filePacket);
 
                     // wait for confirmation with timeout, confirmation is 200, we can use the same datagramPacket from the fileSize
