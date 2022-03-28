@@ -11,7 +11,6 @@ public class UDPConnectionListener extends Thread{
     private static final int timeout = 2000;
 
     public UDPConnectionListener () {
-        newFiles.add("Home\\temppp.txt");
         System.out.println("array newFiles: " + newFiles);
         this.start();
     }
@@ -132,7 +131,7 @@ public class UDPConnectionListener extends Thread{
 
             // remove fileName from the newFiles arrayList
             newFiles.remove(fileName);
-            
+
 
         } catch (SocketTimeoutException ste) {
             dsoc.close();

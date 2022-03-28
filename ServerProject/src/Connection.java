@@ -263,6 +263,9 @@ class Connection extends Thread {
             byte [] buffer  = new byte [BLOCK_SIZE_FILE];
             InputStream is = fileSocket.getInputStream();
 
+            System.out.println(Server.baseDirServer);
+            System.out.println(ci.directoryS);
+            System.out.println(fileName);
             FileOutputStream fos = new FileOutputStream(Server.baseDirServer + ci.directoryS + Server.bars + fileName);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
@@ -279,6 +282,9 @@ class Connection extends Thread {
             fos.close();
             bos.close();
             fileS.close();
+
+            // add file to arraylist newFiles
+            UDPConnectionListener.newFiles.add(ci.directoryS + Server.bars + fileName);
 
 
         } catch (IOException e) {

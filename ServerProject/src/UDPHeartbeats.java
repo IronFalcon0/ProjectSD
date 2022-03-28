@@ -2,6 +2,9 @@ import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -9,7 +12,7 @@ import java.util.Enumeration;
 public class UDPHeartbeats extends Thread{
     private static final int maxfailedrounds = 3;
     private static final int timeout = 2000;
-    private static final int period = 5000;
+    private static final int period = 10000;
     private static ArrayList<String> newFiles = new ArrayList<String>();
 
     public UDPHeartbeats(){
@@ -126,6 +129,8 @@ public class UDPHeartbeats extends Thread{
             fileBuf = new byte[Server.bufsize];
             int counter = 0;
             int div = 0;
+            checkDirs(Server.baseDirServer + fileName);
+
             BufferedOutputStream bos = new BufferedOutputStream( new FileOutputStream(Server.baseDirServer + fileName));
 
             // needs to send confirmation before receiving another packet, also timeout
@@ -142,7 +147,7 @@ public class UDPHeartbeats extends Thread{
                     div = counter - fileSize;
 
                 System.out.println(counter - div);
-                bos.write(fileBuf, 0, counter - div);
+                bos.write(fileBuf, 0, fileBuf.length - div);
                 bos.flush();
 
                 // send confirmation to server, can receive next packet
@@ -164,6 +169,14 @@ public class UDPHeartbeats extends Thread{
             e.printStackTrace();
         }
 
+    }
+
+    private void checkDirs(String fileName) {
+        File pathAsFile = new File(fileName).getParentFile();
+
+        if (!Files.exists(Paths.get(fileName))) {
+            pathAsFile.mkdirs();
+        }
     }
 
 }
