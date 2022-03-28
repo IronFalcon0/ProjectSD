@@ -3,6 +3,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 public class UDPHeartbeats extends Thread{
@@ -104,13 +105,53 @@ public class UDPHeartbeats extends Thread{
         }
         //....
         try {
+            // send fileName
             byte buffer[];
             DatagramSocket dsoc = new DatagramSocket();
-            System.out.println("new socket");
             buffer = fileName.getBytes(StandardCharsets.UTF_8);
-            System.out.println("fileName bin: " + buffer);
-            dsoc.send( new DatagramPacket(buffer, buffer.length, InetAddress.getByName(Server.serverHost), Server.UDPFilesPortMain));
-            System.out.println("filename sended");
+            DatagramPacket dp = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(Server.serverHost), Server.UDPFilesPortMain);
+            dsoc.send(dp);
+            System.out.println("filename sent");
+
+            byte fileBuf[] = new byte[4];
+
+            // receive fileSize
+            DatagramPacket fileSizePacket = new DatagramPacket(fileBuf, fileBuf.length);
+            dsoc.receive(fileSizePacket);
+            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(fileBuf, 0, fileSizePacket.getLength()));
+            int fileSize = dis.readInt();
+
+
+            fileBuf = new byte[Server.bufsize];
+            int counter = 0;
+            int div = 0;
+            BufferedOutputStream bos = new BufferedOutputStream( new FileOutputStream(Server.baseDirServer + fileName));
+
+            // needs to send confirmation before receiving another packet, also timeout
+            while (counter < fileSize) {
+                System.out.println(counter);
+                System.out.println("ready to receive");
+                DatagramPacket filePacket = new DatagramPacket(fileBuf, fileBuf.length);
+                System.out.println("waiting");
+                dsoc.receive(filePacket);
+                System.out.println("package receive");
+
+
+
+                counter += Server.bufsize;
+                if (counter > fileSize)
+                    div = counter - fileSize;
+
+                System.out.println(counter - div);
+                bos.write(fileBuf, 0, counter - div);
+                bos.flush();
+            }
+            System.out.println("ended");
+
+            bos.close();
+            dsoc.close();
+
+
 
         } catch (IOException e) {
             e.printStackTrace();

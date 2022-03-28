@@ -10,7 +10,7 @@ public class UDPConnectionListener extends Thread{
     public static ArrayList<String> newFiles = new ArrayList<String>();
 
     public UDPConnectionListener () {
-        newFiles.add("test123");
+        newFiles.add("Home\\temppp.txt");
         System.out.println("array newFiles: " + newFiles);
         this.start();
     }
@@ -66,20 +66,50 @@ public class UDPConnectionListener extends Thread{
     private void sendFileUDP () {
         // ask first for filename to send
         System.out.println("file requested");
-        File file;
         byte buffer[] = new byte[Server.bufsize];
 
         try {
             DatagramSocket dsoc = new DatagramSocket(Server.UDPFilesPortMain);
 
             // receive package, fileName
-            System.out.println("datagram create");
             DatagramPacket dp = new DatagramPacket(buffer,buffer.length);
             dsoc.receive(dp);
-            //DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buffer, 0, dp.getLength()));
             String fileName = new String(dp.getData(), 0, dp.getLength(), StandardCharsets.UTF_8);
-            System.out.println("fileName: " + fileName + ":");
-            //System.out.println("fileNameBIN: " + Arrays.toString(dp.getData()) + ":");
+            System.out.println("fileName received: " + fileName);
+
+            // convert file to byte array
+            File fileSend = new File(Server.baseDirServer + fileName);
+            byte[] fileContent = Files.readAllBytes(fileSend.toPath());
+
+            byte intBuf[] = ByteBuffer.allocate(4).putInt(fileContent.length).array();
+
+
+            // send fileSize
+            DatagramPacket fileSizePacket =  new DatagramPacket(intBuf, intBuf.length, dp.getAddress(), dp.getPort());
+            System.out.println(Arrays.toString(fileSizePacket.getData()));
+            dsoc.send(fileSizePacket);
+
+
+            int counter = 0;
+            int limit;
+            System.out.println(fileContent.length);
+
+            while(counter < fileContent.length) {
+
+                if (counter + Server.bufsize > fileContent.length)
+                    limit = fileContent.length;
+                else
+                    limit = counter + Server.bufsize;
+                DatagramPacket filePacket =  new DatagramPacket(fileContent, counter, limit, dp.getAddress(), dp.getPort());
+                dsoc.send(filePacket);
+
+                // needs to wait for confirmation before sending next packet
+                counter += Server.bufsize;
+            }
+            System.out.println("done sending");
+
+            dsoc.close();
+
 
 
             //buffer = Files.readAllBytes(file.toPath());;

@@ -17,11 +17,29 @@ public class Server {
     public static String bars = "\\";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
-    public static String baseDirServer = "Content_files" + bars + "Server" + bars;
+    public static String baseDirServer;
+    public static String baseDirServer1 = "Content_files" + bars + "Server" + bars;
+    public static String baseDirServer2 = "Content_files" + bars + "Server2" + bars;
     public static volatile ArrayList<ClientInfo> clientsInfo = new ArrayList<ClientInfo>();
 
 
     public static void main(String args[]) throws InterruptedException {
+
+        if (args.length != 1) {
+            System.out.println("wrong syntax: java Server *folder (0|1)*");
+            System.exit(0);
+        }
+        try {
+            int folder = Integer.parseInt(args[0]);
+            if (folder == 0)
+                baseDirServer = baseDirServer1;
+            else
+                baseDirServer = baseDirServer2;
+
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+
         loadConfigurations();
         loadUserInfo(usersInfoStr);
 
@@ -46,6 +64,7 @@ public class Server {
         } catch (IOException e) {
             System.out.println("Server listen for clients exception: " +e.getMessage());
         }
+        System.exit(0);
     }
 
     // load vars from configuration file
@@ -91,7 +110,17 @@ public class Server {
 
 
                 // verify if user folder already exists. If not, creates it
-                Path path = Paths.get(baseDirServer + "Home");
+                Path path = Paths.get(baseDirServer1 + "Home");
+                if (!Files.exists(path)) {
+                    try {
+                        Files.createDirectories(path);
+                    } catch (IOException e) {
+                        System.out.println("IO: " + e.getMessage());
+                    }
+                }
+
+                // do the same for the secondary server
+                path = Paths.get(baseDirServer2 + "Home");
                 if (!Files.exists(path)) {
                     try {
                         Files.createDirectories(path);
