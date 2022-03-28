@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 public class UDPConnectionListener extends Thread{
     public static ArrayList<String> newFiles = new ArrayList<String>();
+    private static final int timeout = 2000;
 
     public UDPConnectionListener () {
         newFiles.add("Home\\temppp.txt");
@@ -68,11 +69,13 @@ public class UDPConnectionListener extends Thread{
         System.out.println("file requested");
         byte buffer[] = new byte[Server.bufsize];
 
+        DatagramSocket dsoc = null;
         try {
-            DatagramSocket dsoc = new DatagramSocket(Server.UDPFilesPortMain);
+            dsoc = new DatagramSocket(Server.UDPFilesPortMain);
+            dsoc.setSoTimeout(timeout);
 
             // receive package, fileName
-            DatagramPacket dp = new DatagramPacket(buffer,buffer.length);
+            DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
             dsoc.receive(dp);
             String fileName = new String(dp.getData(), 0, dp.getLength(), StandardCharsets.UTF_8);
             System.out.println("fileName received: " + fileName);
@@ -85,37 +88,55 @@ public class UDPConnectionListener extends Thread{
 
 
             // send fileSize
-            DatagramPacket fileSizePacket =  new DatagramPacket(intBuf, intBuf.length, dp.getAddress(), dp.getPort());
+            DatagramPacket fileSizePacket = new DatagramPacket(intBuf, intBuf.length, dp.getAddress(), dp.getPort());
             System.out.println(Arrays.toString(fileSizePacket.getData()));
             dsoc.send(fileSizePacket);
 
 
             int counter = 0;
             int limit;
+            int failedPackets = 0;
             System.out.println(fileContent.length);
 
-            while(counter < fileContent.length) {
+            while (counter < fileContent.length) {
+                try {
 
-                if (counter + Server.bufsize > fileContent.length)
-                    limit = fileContent.length;
-                else
-                    limit = counter + Server.bufsize;
-                DatagramPacket filePacket =  new DatagramPacket(fileContent, counter, limit, dp.getAddress(), dp.getPort());
-                dsoc.send(filePacket);
+                    if (counter + Server.bufsize > fileContent.length)
+                        limit = fileContent.length;
+                    else
+                        limit = counter + Server.bufsize;
+                    DatagramPacket filePacket = new DatagramPacket(fileContent, counter, limit, dp.getAddress(), dp.getPort());
+                    dsoc.send(filePacket);
 
-                // needs to wait for confirmation before sending next packet
-                counter += Server.bufsize;
+                    // wait for confirmation with timeout, confirmation is 200, we can use the same datagramPacket from the fileSize
+                    dsoc.setSoTimeout(timeout);
+                    dsoc.receive(fileSizePacket);
+                    System.out.println("confirmation received");
+
+                    counter += Server.bufsize;
+                    failedPackets = 0;
+
+                } catch (SocketTimeoutException ste) {
+                    System.out.println("File sync timeout: " + timeout + "ms");
+                    failedPackets++;
+                    if (failedPackets == 3) {
+                        dsoc.close();
+                        return;
+                    }
+
+                }
             }
             System.out.println("done sending");
 
             dsoc.close();
 
+            // remove fileName from the newFiles arrayList
+            newFiles.remove(fileName);
+            
 
-
-            //buffer = Files.readAllBytes(file.toPath());;
-
-
-
+        } catch (SocketTimeoutException ste) {
+            dsoc.close();
+            System.out.println("File sync timeout: " + timeout + "ms");
         } catch (IOException e) {
             e.printStackTrace();
         }

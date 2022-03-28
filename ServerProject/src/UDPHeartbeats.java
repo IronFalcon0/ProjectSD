@@ -116,6 +116,7 @@ public class UDPHeartbeats extends Thread{
             byte fileBuf[] = new byte[4];
 
             // receive fileSize
+            dsoc.setSoTimeout(timeout);
             DatagramPacket fileSizePacket = new DatagramPacket(fileBuf, fileBuf.length);
             dsoc.receive(fileSizePacket);
             DataInputStream dis = new DataInputStream(new ByteArrayInputStream(fileBuf, 0, fileSizePacket.getLength()));
@@ -129,15 +130,13 @@ public class UDPHeartbeats extends Thread{
 
             // needs to send confirmation before receiving another packet, also timeout
             while (counter < fileSize) {
-                System.out.println(counter);
-                System.out.println("ready to receive");
+                // receive file packet
                 DatagramPacket filePacket = new DatagramPacket(fileBuf, fileBuf.length);
-                System.out.println("waiting");
                 dsoc.receive(filePacket);
                 System.out.println("package receive");
 
 
-
+                // write new packet in file
                 counter += Server.bufsize;
                 if (counter > fileSize)
                     div = counter - fileSize;
@@ -145,13 +144,21 @@ public class UDPHeartbeats extends Thread{
                 System.out.println(counter - div);
                 bos.write(fileBuf, 0, counter - div);
                 bos.flush();
+
+                // send confirmation to server, can receive next packet
+                byte[] bufConf = ByteBuffer.allocate(4).putInt(200).array();
+                DatagramPacket confirmation = new DatagramPacket(bufConf, bufConf.length, dp.getAddress(), dp.getPort());
+                dsoc.send(confirmation);
+                System.out.println("confirmation sended");
+
             }
             System.out.println("ended");
 
             bos.close();
             dsoc.close();
 
-
+        } catch (SocketTimeoutException ste) {
+            System.out.println("File sync timeout: " + timeout + "ms");
 
         } catch (IOException e) {
             e.printStackTrace();
