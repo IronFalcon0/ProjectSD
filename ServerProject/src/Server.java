@@ -12,7 +12,7 @@ public class Server {
     protected static String serverHost = "localhost";
     protected static int UDPFilesPortMain = 1000;
     protected static int UDPFilesPortSec = 1001;
-    protected static final int bufsize = 4096;
+    protected static final int bufsize = 1024;
     private static int serverFilePort;
     public static String bars = "\\";
     private static String usersInfoStr;

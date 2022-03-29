@@ -8,6 +8,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.zip.Adler32;
+import java.util.zip.Checksum;
 
 public class UDPHeartbeats extends Thread{
     private static final int maxfailedrounds = 3;
@@ -21,11 +23,9 @@ public class UDPHeartbeats extends Thread{
 
 
     public void run() {
-        //int countHeartBeats = 0;
 
         try (DatagramSocket aSocket = new DatagramSocket()) {
-            //aSocket.setSoTimeout(timeout);
-            System.out.println("sending heartbeats");
+            System.out.println("Server took on Secondary Server role");
             int failedheartbeats = 0;
 
             while(failedheartbeats < maxfailedrounds) {
@@ -53,8 +53,7 @@ public class UDPHeartbeats extends Thread{
 
                     }
 
-                    System.out.println("newFiles: " + newFiles);
-                    //System.out.println("Recebeu: " + respond);
+                    System.out.println("Files to sync: " + newFiles);
                     failedheartbeats = 0;
 
                     if (!newFiles.isEmpty()) {
@@ -69,7 +68,7 @@ public class UDPHeartbeats extends Thread{
 
                 } catch (SocketTimeoutException ste) {
                         failedheartbeats++;
-                        System.out.println("Failed heartbeats: " + failedheartbeats);
+                        System.out.println("Timeout heartbeats: " + timeout +  "ms, " + failedheartbeats);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -77,7 +76,6 @@ public class UDPHeartbeats extends Thread{
                 }
             }
             aSocket.close();
-            System.out.println("no connection to main server");
             // turn server to main, init thread to listen to secondary servers
             new UDPConnectionListener();
             // ends current thread to allow the main process to accept connections from clients
@@ -91,7 +89,7 @@ public class UDPHeartbeats extends Thread{
     }
 
     private void requestFile(String fileName, DatagramSocket aSocket) {
-        System.out.println("request file: " + fileName);
+
         // convert to byte array requestFile code (101)
         int heartbeat = 101;
         byte[] buf = ByteBuffer.allocate(4).putInt(heartbeat).array();
@@ -101,22 +99,21 @@ public class UDPHeartbeats extends Thread{
             InetAddress aHost = InetAddress.getByName(Server.serverHost);
             DatagramPacket request = new DatagramPacket(buf, buf.length, aHost, Server.serverUDPPort);
             aSocket.send(request);
-            System.out.println("code 101 sended");
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //....
+
+        DatagramSocket dsoc = null;
         try {
             // send fileName
-            byte buffer[];
-            DatagramSocket dsoc = new DatagramSocket();
+            byte[] buffer;
+            dsoc = new DatagramSocket();
             buffer = fileName.getBytes(StandardCharsets.UTF_8);
             DatagramPacket dp = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(Server.serverHost), Server.UDPFilesPortMain);
             dsoc.send(dp);
-            System.out.println("filename sent");
 
-            byte fileBuf[] = new byte[4];
+            byte[] fileBuf = new byte[4];
 
             // receive fileSize
             dsoc.setSoTimeout(timeout);
@@ -131,14 +128,13 @@ public class UDPHeartbeats extends Thread{
             int div = 0;
             checkDirs(Server.baseDirServer + fileName);
 
-            BufferedOutputStream bos = new BufferedOutputStream( new FileOutputStream(Server.baseDirServer + fileName));
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(Server.baseDirServer + fileName));
 
             // needs to send confirmation before receiving another packet, also timeout
             while (counter < fileSize) {
                 // receive file packet
                 DatagramPacket filePacket = new DatagramPacket(fileBuf, fileBuf.length);
                 dsoc.receive(filePacket);
-                System.out.println("package receive");
 
 
                 // write new packet in file
@@ -146,23 +142,29 @@ public class UDPHeartbeats extends Thread{
                 if (counter > fileSize)
                     div = counter - fileSize;
 
-                System.out.println(counter - div);
                 bos.write(fileBuf, 0, fileBuf.length - div);
                 bos.flush();
-
-                // send confirmation to server, can receive next packet
-                byte[] bufConf = ByteBuffer.allocate(4).putInt(200).array();
-                DatagramPacket confirmation = new DatagramPacket(bufConf, bufConf.length, dp.getAddress(), dp.getPort());
-                dsoc.send(confirmation);
-                System.out.println("confirmation sended");
-
             }
-            System.out.println("ended");
 
+            // close fileOutputStream
             bos.close();
+
+            // calculate checksum and send result
+            byte[] fileContent = Files.readAllBytes(Paths.get(Server.baseDirServer + fileName));
+            Checksum checksum = new Adler32();
+            checksum.update(fileContent, 0, fileContent.length);
+
+            byte[] buff = ByteBuffer.allocate(8).putLong(checksum.getValue()).array();
+            DatagramPacket checksumPacket = new DatagramPacket(buff, buff.length, dp.getAddress(), dp.getPort());
+            dsoc.send(checksumPacket);
+
+
             dsoc.close();
 
+            System.out.println("File received from main server");
+
         } catch (SocketTimeoutException ste) {
+            dsoc.close();
             System.out.println("File sync timeout: " + timeout + "ms");
 
         } catch (IOException e) {

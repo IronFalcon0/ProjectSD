@@ -3,15 +3,22 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.zip.Adler32;
+import java.util.zip.Checksum;
 
 public class UDPConnectionListener extends Thread{
     public static ArrayList<String> newFiles = new ArrayList<String>();
     private static final int timeout = 2000;
+    private static int nPackets;
 
     public UDPConnectionListener () {
         System.out.println("array newFiles: " + newFiles);
+        nPackets = (int) Math.floor(65536 / Server.bufsize) - 1;
+        if (nPackets <= 0)
+            nPackets = 1;
         this.start();
     }
 
@@ -20,7 +27,7 @@ public class UDPConnectionListener extends Thread{
     public void run() {
 
         try (DatagramSocket aSocket = new DatagramSocket(Server.serverUDPPort)) {
-            System.out.println("UDP listener up");
+            System.out.println("Server took on Main Server role");
 
             while(true) {
                 // receive heartbeat
@@ -65,8 +72,7 @@ public class UDPConnectionListener extends Thread{
 
     private void sendFileUDP () {
         // ask first for filename to send
-        System.out.println("file requested");
-        byte buffer[] = new byte[Server.bufsize];
+        byte[] buffer = new byte[Server.bufsize];
 
         DatagramSocket dsoc = null;
         try {
@@ -77,67 +83,74 @@ public class UDPConnectionListener extends Thread{
             DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
             dsoc.receive(dp);
             String fileName = new String(dp.getData(), 0, dp.getLength(), StandardCharsets.UTF_8);
-            System.out.println("fileName received: " + fileName);
 
             // convert file to byte array
             File fileSend = new File(Server.baseDirServer + fileName);
             byte[] fileContent = Files.readAllBytes(fileSend.toPath());
 
-            byte intBuf[] = ByteBuffer.allocate(4).putInt(fileContent.length).array();
+            byte[] intBuf = ByteBuffer.allocate(4).putInt(fileContent.length).array();
 
 
             // send fileSize
             DatagramPacket fileSizePacket = new DatagramPacket(intBuf, intBuf.length, dp.getAddress(), dp.getPort());
-            System.out.println(Arrays.toString(fileSizePacket.getData()));
             dsoc.send(fileSizePacket);
 
 
             int counter = 0;
             int limit;
-            int failedPackets = 0;
-            System.out.println(fileContent.length);
+            int sleepCount = 0;
 
             while (counter < fileContent.length) {
-                try {
 
-                    if (counter + Server.bufsize > fileContent.length)
-                        limit = fileContent.length;
-                    else
-                        limit = counter + Server.bufsize;
-                    byte packetData[] = Arrays.copyOfRange(fileContent, counter, limit);
-                    DatagramPacket filePacket = new DatagramPacket(packetData, 0, packetData.length, dp.getAddress(), dp.getPort());
-                    dsoc.send(filePacket);
+                if (counter + Server.bufsize > fileContent.length)
+                    limit = fileContent.length;
+                else
+                    limit = counter + Server.bufsize;
+                byte[] packetData = Arrays.copyOfRange(fileContent, counter, limit);
+                DatagramPacket filePacket = new DatagramPacket(packetData, 0, packetData.length, dp.getAddress(), dp.getPort());
+                dsoc.send(filePacket);
 
-                    // wait for confirmation with timeout, confirmation is 200, we can use the same datagramPacket from the fileSize
-                    dsoc.setSoTimeout(timeout);
-                    dsoc.receive(fileSizePacket);
-                    System.out.println("confirmation received");
-
-                    counter += Server.bufsize;
-                    failedPackets = 0;
-
-                } catch (SocketTimeoutException ste) {
-                    System.out.println("File sync timeout: " + timeout + "ms");
-                    failedPackets++;
-                    if (failedPackets == 3) {
-                        dsoc.close();
-                        return;
-                    }
-
+                // to avoid overwrite of the buffer
+                if (sleepCount == nPackets) {
+                    Thread.sleep(1);
+                    sleepCount = 0;
                 }
+
+                counter += Server.bufsize;
+                sleepCount += 1;
+
             }
-            System.out.println("done sending");
+
+            // do checksum
+            Checksum checksumMain = new Adler32();
+            checksumMain.update(fileContent, 0, fileContent.length);
+
+
+            // receive checksum from secondary server
+            byte[] checksumBuf = new byte[8];
+            DatagramPacket filePacket = new DatagramPacket(checksumBuf, checksumBuf.length);
+            dsoc.receive(filePacket);
+            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(checksumBuf, 0, filePacket.getLength()));
+            long checksum = dis.readLong();
+
+            // remove fileName from the newFiles arrayList
+            if (checksum == checksumMain.getValue()) {
+                newFiles.remove(fileName);
+                System.out.println("File sent to backup server");
+
+            } else {
+                System.out.println("Error sending file to backup server");
+            }
+
 
             dsoc.close();
 
-            // remove fileName from the newFiles arrayList
-            newFiles.remove(fileName);
 
 
         } catch (SocketTimeoutException ste) {
             dsoc.close();
             System.out.println("File sync timeout: " + timeout + "ms");
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
