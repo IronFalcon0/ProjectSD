@@ -1,19 +1,21 @@
 import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 public class UDPHeartbeats extends Thread{
-    private static int serverUDPPort;
-    private static String serverHost;
     private static final int maxfailedrounds = 3;
-    private static final int timeout = 3000;
-    private static final int bufsize = 4096;
-    private static final int period = 2000;
+    private static final int timeout = 2000;
+    private static final int period = 10000;
+    private static ArrayList<String> newFiles = new ArrayList<String>();
 
-    public UDPHeartbeats(int port){
-        serverUDPPort = port;
-        serverHost = "localhost";
+    public UDPHeartbeats(){
         this.start();
     }
 
@@ -28,28 +30,39 @@ public class UDPHeartbeats extends Thread{
 
             while(failedheartbeats < maxfailedrounds) {
                 try {
+                    // convert to byte array heartbeat code (200)
                     int heartbeat = 200;
                     byte[] buf = ByteBuffer.allocate(4).putInt(heartbeat).array();
 
-                    InetAddress aHost = InetAddress.getByName(serverHost);
-                    DatagramPacket request = new DatagramPacket(buf, buf.length, aHost, serverUDPPort);
+                    InetAddress aHost = InetAddress.getByName(Server.serverHost);
+                    DatagramPacket request = new DatagramPacket(buf, buf.length, aHost, Server.serverUDPPort);
                     aSocket.send(request);
 
                     aSocket.setSoTimeout(timeout);
 
-                    byte[] buffer = new byte[bufsize];
+                    byte[] buffer = new byte[Server.bufsize];
                     DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
                     aSocket.receive(reply);
 
                     DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buffer, 0, reply.getLength()));
-                    int respond = dis.readInt();
+                    newFiles = new ArrayList<>();
 
+                    while (dis.available() > 0) {
+                        String element = dis.readUTF();
+                        newFiles.add(element);
 
-                    System.out.println("Recebeu: " + respond);
-                    if (respond == 200)
-                        failedheartbeats = 0;
-                    else
-                        failedheartbeats++;
+                    }
+
+                    System.out.println("newFiles: " + newFiles);
+                    //System.out.println("Recebeu: " + respond);
+                    failedheartbeats = 0;
+
+                    if (!newFiles.isEmpty()) {
+                        for (String fileName: newFiles) {
+                            requestFile(fileName, aSocket);
+                        }
+                    }
+
 
                     Thread.sleep(period);
 
@@ -66,7 +79,7 @@ public class UDPHeartbeats extends Thread{
             aSocket.close();
             System.out.println("no connection to main server");
             // turn server to main, init thread to listen to secondary servers
-            new UDPConnectionListener(serverUDPPort);
+            new UDPConnectionListener();
             // ends current thread to allow the main process to accept connections from clients
 
 
@@ -74,6 +87,95 @@ public class UDPHeartbeats extends Thread{
 
         } catch (SocketException e) {
             System.out.println("Socket: " + e.getMessage());
+        }
+    }
+
+    private void requestFile(String fileName, DatagramSocket aSocket) {
+        System.out.println("request file: " + fileName);
+        // convert to byte array requestFile code (101)
+        int heartbeat = 101;
+        byte[] buf = ByteBuffer.allocate(4).putInt(heartbeat).array();
+
+        // send code to main server
+        try {
+            InetAddress aHost = InetAddress.getByName(Server.serverHost);
+            DatagramPacket request = new DatagramPacket(buf, buf.length, aHost, Server.serverUDPPort);
+            aSocket.send(request);
+            System.out.println("code 101 sended");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //....
+        try {
+            // send fileName
+            byte buffer[];
+            DatagramSocket dsoc = new DatagramSocket();
+            buffer = fileName.getBytes(StandardCharsets.UTF_8);
+            DatagramPacket dp = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(Server.serverHost), Server.UDPFilesPortMain);
+            dsoc.send(dp);
+            System.out.println("filename sent");
+
+            byte fileBuf[] = new byte[4];
+
+            // receive fileSize
+            dsoc.setSoTimeout(timeout);
+            DatagramPacket fileSizePacket = new DatagramPacket(fileBuf, fileBuf.length);
+            dsoc.receive(fileSizePacket);
+            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(fileBuf, 0, fileSizePacket.getLength()));
+            int fileSize = dis.readInt();
+
+
+            fileBuf = new byte[Server.bufsize];
+            int counter = 0;
+            int div = 0;
+            checkDirs(Server.baseDirServer + fileName);
+
+            BufferedOutputStream bos = new BufferedOutputStream( new FileOutputStream(Server.baseDirServer + fileName));
+
+            // needs to send confirmation before receiving another packet, also timeout
+            while (counter < fileSize) {
+                // receive file packet
+                DatagramPacket filePacket = new DatagramPacket(fileBuf, fileBuf.length);
+                dsoc.receive(filePacket);
+                System.out.println("package receive");
+
+
+                // write new packet in file
+                counter += Server.bufsize;
+                if (counter > fileSize)
+                    div = counter - fileSize;
+
+                System.out.println(counter - div);
+                bos.write(fileBuf, 0, fileBuf.length - div);
+                bos.flush();
+
+                // send confirmation to server, can receive next packet
+                byte[] bufConf = ByteBuffer.allocate(4).putInt(200).array();
+                DatagramPacket confirmation = new DatagramPacket(bufConf, bufConf.length, dp.getAddress(), dp.getPort());
+                dsoc.send(confirmation);
+                System.out.println("confirmation sended");
+
+            }
+            System.out.println("ended");
+
+            bos.close();
+            dsoc.close();
+
+        } catch (SocketTimeoutException ste) {
+            System.out.println("File sync timeout: " + timeout + "ms");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void checkDirs(String fileName) {
+        File pathAsFile = new File(fileName).getParentFile();
+
+        if (!Files.exists(Paths.get(fileName))) {
+            pathAsFile.mkdirs();
         }
     }
 
