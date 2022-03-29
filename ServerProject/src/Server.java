@@ -8,13 +8,14 @@ import java.nio.file.Paths;
 
 public class Server {
     private static int serverTCPPort;
+    private static int serverTCPPort1;
+    private static int serverTCPPort2;
     protected static int serverUDPPort = 5000;
-    protected static String serverHost = "localhost";
+    protected static String serverHost;
     protected static int UDPFilesPortMain = 1000;
-    protected static int UDPFilesPortSec = 1001;
     protected static final int bufsize = 1024;
-    private static int serverFilePort;
-    public static String bars = "/";
+
+    public static String bars = "\\";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
     public static String baseDirServer;
@@ -29,19 +30,28 @@ public class Server {
             System.out.println("wrong syntax: java Server *folder (0|1)*");
             System.exit(0);
         }
+
+        loadConfigurations();
+        loadUserInfo(usersInfoStr);
+
         try {
             int folder = Integer.parseInt(args[0]);
-            if (folder == 0)
+            if (folder == 0) {
                 baseDirServer = baseDirServer1;
-            else
+                serverTCPPort = serverTCPPort1;
+
+            } else {
                 baseDirServer = baseDirServer2;
+                serverTCPPort = serverTCPPort2;
+            }
+
+            System.out.println(serverHost + serverTCPPort);
 
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
 
-        loadConfigurations();
-        loadUserInfo(usersInfoStr);
+
 
         // init UDP threads
         // listen for hearthbeats
@@ -73,10 +83,17 @@ public class Server {
             File configurationFile = new File(baseDirConf);
             Scanner scannerFile = new Scanner(configurationFile);
 
-            scannerFile.nextLine();
             String line = scannerFile.nextLine();
+            String[] strParts = line.split(" ");
+            serverHost = strParts[1];
+
+            line = scannerFile.nextLine();
             String[] ucDriveServer = line.split(" ");
-            serverTCPPort = Integer.parseInt(ucDriveServer[1]);
+            serverTCPPort1 = Integer.parseInt(ucDriveServer[1]);
+
+            line = scannerFile.nextLine();
+            strParts = line.split(" ");
+            serverTCPPort2 = Integer.parseInt(strParts[1]);
 
             line = scannerFile.nextLine();
             String[] usersPath = line.split(" ");

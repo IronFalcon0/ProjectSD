@@ -11,7 +11,7 @@ class Connection extends Thread {
     private DataOutputStream out;
     private Socket clientSocket;
     private ClientInfo ci;
-    private static final int BLOCK_SIZE_FILE = 8192;
+    private static final int BLOCK_SIZE_FILE = 4096;
 
     public Connection (Socket aClientSocKet) {
         try {

@@ -8,11 +8,11 @@ import java.io.*;
 public class Client {
     private static int serverSocket;
     private static String host;
-    private static String bars = "/";
+    private static String bars = "\\";
     public static String shortClientDir = new String();
     public static String clientDir = new String();
     private static String baseDirConf = "Content_files" + bars + "conf_file";
-    private static final int BLOCK_SIZE_FILE = 8192;
+    private static final int BLOCK_SIZE_FILE = 4096;
 
 
     public static void main(String args[]) {
