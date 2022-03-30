@@ -3,16 +3,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
+import java.util.ArrayList;
 import java.io.*;
 
 public class Client {
     private static int serverSocket;
     private static String host;
-    private static String bars = "\\";
+    private static String bars = "/";
     public static String shortClientDir = new String();
     public static String clientDir = new String();
     private static String baseDirConf = "Content_files" + bars + "conf_file";
     private static final int BLOCK_SIZE_FILE = 4096;
+    private static String currentCommand = new String();
+    private static ArrayList<String> loginInfo= new ArrayList<String>();
+
 
 
     public static void main(String args[]) {
@@ -34,24 +38,29 @@ public class Client {
 
                 while (!Login(in, out)) ;
 
-
                 try (Scanner sc = new Scanner(System.in)) {
                     while (true) {
-                        System.out.printf(shortClientDir + ">");
-                        String command = sc.nextLine();
+                        if(currentCommand.equals("")) {
+                            System.out.printf(shortClientDir + ">");
+                            currentCommand = sc.nextLine();
+                        } else{
+                            System.out.printf(shortClientDir + ">" + currentCommand + "\n");
+                        }
 
-                        if (command.equals("")) {
+                        if (currentCommand.equals("")) {
+                            currentCommand = "";
                             continue;
                         }
                         // trim command
-                        command = command.strip();
+                        currentCommand = currentCommand.strip();
 
-                        String[] commandParts = command.split(" ", 3);
+                        String[] commandParts = currentCommand.split(" ", 3);
 
                         switch (commandParts[0]) {
                             case "ls":                                                                  // list files in client|server dir
                                 if (commandParts.length != 2) {
                                     System.out.println("wrong syntax: ls client|server");
+                                    currentCommand = "";
                                     continue;
                                 }
 
@@ -67,6 +76,7 @@ public class Client {
                             case "cd":                                                              // changes client|server dir
                                 if (commandParts.length != 3) {
                                     System.out.println("wrong syntax: cd client|server *new_dir*");
+                                    currentCommand = "";
                                     continue;
                                 }
 
@@ -75,7 +85,7 @@ public class Client {
                                     System.out.println(in.readUTF());
 
                                 } else if (commandParts[1].equals("client")) {
-                                    String resp = changeCurDir(command);
+                                    String resp = changeCurDir(currentCommand);
 
                                     if (!resp.equals("")) {
                                         System.out.println(resp);
@@ -86,6 +96,7 @@ public class Client {
                             case "get":                                                                 // get file from server
                                 if (commandParts.length == 1) {
                                     System.out.println("wrong syntax: get *file_name*");
+                                    currentCommand = "";
                                     continue;
                                 }
                                 if (commandParts.length == 3) {
@@ -104,6 +115,7 @@ public class Client {
                             case "send":                                                            // send file to server
                                 if (commandParts.length == 1) {
                                     System.out.println("wrong syntax: send *file_name*");
+                                    currentCommand = "";
                                     continue;
                                 }
                                 if (commandParts.length == 3) {
@@ -134,6 +146,7 @@ public class Client {
                             case "cp":
                                 if (commandParts.length != 2) {
                                     System.out.println("wrong syntax: cp *new_password*");
+                                    currentCommand = "";
                                     continue;
                                 }
                                 out.writeUTF(commandParts[0]);
@@ -144,8 +157,10 @@ public class Client {
                                 break;
 
                             default:
+                                currentCommand = "";
                                 System.out.println("Command not found");
                         }
+                        currentCommand = "";
                     }
                 }
 
@@ -160,6 +175,7 @@ public class Client {
                     System.out.println("Main server offline, trying to connect to secundary server...");
                 else
                     System.out.println("Failed to connect to any of the servers");
+                continue;
             }
         }
     }
@@ -222,15 +238,22 @@ public class Client {
     private static boolean Login(DataInputStream in, DataOutputStream out) {
         Scanner sc = new Scanner(System.in);
         try {
-            System.out.printf("Login\nusername: ");
-            String userName = sc.nextLine();
-            System.out.printf("password: ");
-            String password = sc.nextLine();
+            String userName = new String();
+            String password = new String();
+
+            if(loginInfo.isEmpty()) {
+                System.out.printf("Login\nusername: ");
+                userName = sc.nextLine();
+                System.out.printf("password: ");
+                password = sc.nextLine();
 
 
-            if (userName.isEmpty()) userName = "";
-            if (password.isEmpty()) password = "";
-
+                if (userName.isEmpty()) userName = "";
+                if (password.isEmpty()) password = "";
+            } else{
+                userName = loginInfo.get(0);
+                password = loginInfo.get(1);
+            }
 
             //String loginStr = "LOGIN:" + userName + ":" + password;
             out.writeUTF("LOGIN");
@@ -254,6 +277,9 @@ public class Client {
                 System.out.println("Login with success");
                 System.out.println("server:" + respond + ">");
                 clientDir = System.getProperty("user.dir");
+                loginInfo.clear();
+                loginInfo.add(userName);
+                loginInfo.add(password);
 
                 getShortDir();
                 return true;

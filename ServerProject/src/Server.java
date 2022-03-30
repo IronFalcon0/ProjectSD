@@ -15,7 +15,7 @@ public class Server {
     protected static int UDPFilesPortMain = 1000;
     protected static final int bufsize = 1024;
 
-    public static String bars = "\\";
+    public static String bars = "/";
     private static String usersInfoStr;
     private static String baseDirConf = "Content_files" + bars + "conf_file";
     public static String baseDirServer;
