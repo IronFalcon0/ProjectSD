@@ -34,140 +34,136 @@ public class Client {
 
                 DataInputStream in = new DataInputStream(s.getInputStream());
                 DataOutputStream out = new DataOutputStream(s.getOutputStream());
+                Scanner sc = new Scanner(System.in);
 
 
                 while (!Login(in, out)) ;
 
-                try (Scanner sc = new Scanner(System.in)) {
-                    while (true) {
-                        if(currentCommand.equals("")) {
-                            System.out.printf(shortClientDir + ">");
-                            currentCommand = sc.nextLine();
-                        } else{
-                            System.out.printf(shortClientDir + ">" + currentCommand + "\n");
-                        }
+                while (true) {
+                    if(currentCommand.equals("")) {
+                        System.out.printf(shortClientDir + ">");
+                        currentCommand = sc.nextLine();
+                    } else{
+                        System.out.printf(shortClientDir + ">" + currentCommand + "\n");
+                    }
 
-                        if (currentCommand.equals("")) {
-                            currentCommand = "";
-                            continue;
-                        }
-                        // trim command
-                        currentCommand = currentCommand.strip();
+                    if (currentCommand.equals("")) {
+                        currentCommand = "";
+                        continue;
+                    }
+                    // trim command
+                    currentCommand = currentCommand.strip();
 
-                        String[] commandParts = currentCommand.split(" ", 3);
+                    String[] commandParts = currentCommand.split(" ", 3);
 
-                        switch (commandParts[0]) {
-                            case "ls":                                                                  // list files in client|server dir
-                                if (commandParts.length != 2) {
-                                    System.out.println("wrong syntax: ls client|server");
-                                    currentCommand = "";
-                                    continue;
-                                }
+                    switch (commandParts[0]) {
+                        case "ls":                                                                  // list files in client|server dir
+                            if (commandParts.length != 2) {
+                                System.out.println("wrong syntax: ls client|server");
+                                currentCommand = "";
+                                continue;
+                            }
 
-                                if (commandParts[1].equals("server")) {
-                                    out.writeUTF(commandParts[0] + ":" + commandParts[1]);
-                                    System.out.println(in.readUTF());
+                            if (commandParts[1].equals("server")) {
+                                out.writeUTF(commandParts[0] + ":" + commandParts[1]);
+                                System.out.println(in.readUTF());
 
-                                } else if (commandParts[1].equals("client")) {
-                                    System.out.println(listFilesCurDir());
-                                }
-                                break;
+                            } else if (commandParts[1].equals("client")) {
+                                System.out.println(listFilesCurDir());
+                            }
+                            break;
 
-                            case "cd":                                                              // changes client|server dir
-                                if (commandParts.length != 3) {
-                                    System.out.println("wrong syntax: cd client|server *new_dir*");
-                                    currentCommand = "";
-                                    continue;
-                                }
+                        case "cd":                                                              // changes client|server dir
+                            if (commandParts.length != 3) {
+                                System.out.println("wrong syntax: cd client|server *new_dir*");
+                                currentCommand = "";
+                                continue;
+                            }
 
-                                if (commandParts[1].equals("server")) {
-                                    out.writeUTF(commandParts[0] + ":" + commandParts[1] + ":" + commandParts[2]);
-                                    System.out.println(in.readUTF());
+                            if (commandParts[1].equals("server")) {
+                                out.writeUTF(commandParts[0] + ":" + commandParts[1] + ":" + commandParts[2]);
+                                System.out.println(in.readUTF());
 
-                                } else if (commandParts[1].equals("client")) {
-                                    String resp = changeCurDir(currentCommand);
+                            } else if (commandParts[1].equals("client")) {
+                                String resp = changeCurDir(currentCommand);
 
-                                    if (!resp.equals("")) {
-                                        System.out.println(resp);
-                                    }
-                                }
-                                break;
-
-                            case "get":                                                                 // get file from server
-                                if (commandParts.length == 1) {
-                                    System.out.println("wrong syntax: get *file_name*");
-                                    currentCommand = "";
-                                    continue;
-                                }
-                                if (commandParts.length == 3) {
-                                    commandParts[1] = commandParts[1] + " " + commandParts[2];
-                                }
-
-                                out.writeUTF("GET:" + commandParts[1]);
-                                String resp = in.readUTF();
-                                if (resp.contains("CLIENT_CONNECT_GET")) {
-                                    getFile(resp);
-                                } else {
+                                if (!resp.equals("")) {
                                     System.out.println(resp);
                                 }
-                                break;
+                            }
+                            break;
 
-                            case "send":                                                            // send file to server
-                                if (commandParts.length == 1) {
-                                    System.out.println("wrong syntax: send *file_name*");
-                                    currentCommand = "";
-                                    continue;
-                                }
-                                if (commandParts.length == 3) {
-                                    commandParts[1] = commandParts[1] + " " + commandParts[2];
-                                }
-
-                                String fileName = clientDir + bars + commandParts[1];
-
-
-                                File file = new File(fileName);
-                                if (file.exists() && file.isFile()) {
-                                    out.writeUTF("SEND:" + commandParts[1]);
-                                    String res = in.readUTF();
-                                    if (res.contains("CLIENT_CONNECT_SEND")) {
-                                        sendFile(res);
-                                    }
-
-                                } else {
-                                    System.out.println("File not found");
-                                }
-                                break;
-
-                            case "exit()":                                                        // client closes connection, server saves client current dir
-                                out.writeUTF("CLOSE_CONNECTION");
-                                System.exit(0);
-                                break;
-
-                            case "cp":
-                                if (commandParts.length != 2) {
-                                    System.out.println("wrong syntax: cp *new_password*");
-                                    currentCommand = "";
-                                    continue;
-                                }
-                                out.writeUTF(commandParts[0]);
-                                out.writeUTF(commandParts[1]);
-                                String respond = in.readUTF();
-                                System.out.println(respond);
-                                while (!Login(in, out)) ;
-                                break;
-
-                            default:
+                        case "get":                                                                 // get file from server
+                            if (commandParts.length == 1) {
+                                System.out.println("wrong syntax: get *file_name*");
                                 currentCommand = "";
-                                System.out.println("Command not found");
-                        }
-                        currentCommand = "";
+                                continue;
+                            }
+                            if (commandParts.length == 3) {
+                                commandParts[1] = commandParts[1] + " " + commandParts[2];
+                            }
+
+                            out.writeUTF("GET:" + commandParts[1]);
+                            String resp = in.readUTF();
+                            if (resp.contains("CLIENT_CONNECT_GET")) {
+                                getFile(resp);
+                            } else {
+                                System.out.println(resp);
+                            }
+                            break;
+
+                        case "send":                                                            // send file to server
+                            if (commandParts.length == 1) {
+                                System.out.println("wrong syntax: send *file_name*");
+                                currentCommand = "";
+                                continue;
+                            }
+                            if (commandParts.length == 3) {
+                                commandParts[1] = commandParts[1] + " " + commandParts[2];
+                            }
+
+                            String fileName = clientDir + bars + commandParts[1];
+
+
+                            File file = new File(fileName);
+                            if (file.exists() && file.isFile()) {
+                                out.writeUTF("SEND:" + commandParts[1]);
+                                String res = in.readUTF();
+                                if (res.contains("CLIENT_CONNECT_SEND")) {
+                                    sendFile(res);
+                                }
+
+                            } else {
+                                System.out.println("File not found");
+                            }
+                            break;
+
+                        case "exit()":                                                        // client closes connection, server saves client current dir
+                            out.writeUTF("CLOSE_CONNECTION");
+                            System.exit(0);
+                            break;
+
+                        case "cp":
+                            if (commandParts.length != 2) {
+                                System.out.println("wrong syntax: cp *new_password*");
+                                currentCommand = "";
+                                continue;
+                            }
+                            out.writeUTF(commandParts[0]);
+                            out.writeUTF(commandParts[1]);
+                            String respond = in.readUTF();
+                            System.out.println(respond);
+                            while (!Login(in, out)) ;
+                            break;
+
+                        default:
+                            currentCommand = "";
+                            System.out.println("Command not found");
                     }
+                    currentCommand = "";
                 }
 
-            } catch (UnknownHostException e) {
-                System.out.println("Sock:" + e.getMessage());
-            } catch (EOFException e) {
-                System.out.println("EOF:" + e.getMessage());
+
             } catch (IOException e) {
                 host = args[2];
                 serverSocket = Integer.parseInt(args[3]);
