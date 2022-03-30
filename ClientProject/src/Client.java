@@ -67,7 +67,7 @@ public class Client {
 
                     switch (commandParts[0]) {
                         case "ls":                                                                  // list files in client|server dir
-                            if (commandParts.length != 2) {
+                            if (commandParts.length != 2 || (!commandParts[1].equals("server") && !commandParts[1].equals("client"))) {
                                 System.out.println("Wrong Syntax: ls client|server");
                                 currentCommand = "";
                                 continue;
