@@ -64,6 +64,7 @@ class Connection extends Thread {
                 }
                 // trim command
                 command = command.strip();
+                System.out.println("command: " + command);
 
                 String[] commandParts = command.split(":", 3);
 
@@ -125,6 +126,7 @@ class Connection extends Thread {
                 }
             }
         } catch(EOFException e) {
+            System.out.println("I'm here hehe");
             System.out.println("EOF:" + e);
         } catch(IOException e) {
             System.out.println("IO:" + e);
