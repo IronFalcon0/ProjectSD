@@ -1,5 +1,9 @@
 #SD project1
 
+
+Informação de instalação:
+
+
 Commands:
 exit()                      -> closes client-server connection
 cd server *folderName*      -> changes the current folder on the server side

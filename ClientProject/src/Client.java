@@ -11,10 +11,9 @@ public class Client {
     private static String host;
     private static int serverSocketSecondary;
     private static String hostSecondary;
-    private static String bars = "/";
     public static String shortClientDir = new String();
     public static String clientDir = new String();
-    private static String baseDirConf = "Content_files" + bars + "conf_file";
+    private static String baseDirConf = "Content_files" + File.separator + "conf_file";
     private static final int BLOCK_SIZE_FILE = 4096;
     private static String currentCommand = new String();
     private static ArrayList<String> loginInfo= new ArrayList<String>();
@@ -36,6 +35,7 @@ public class Client {
 
         int countFails = 0;
 
+        // before exiting tries to connect to both servers
         while(countFails < 2){
             try (Socket s = new Socket(host, serverSocket)) {
                 countFails = 0;
@@ -48,6 +48,7 @@ public class Client {
                 while (!Login(in, out)) ;
 
                 while (true) {
+                    // if there is a command in memory, means that the server changed, resends command to new server
                     if(currentCommand.equals("")) {
                         System.out.printf(shortClientDir + ">");
                         currentCommand = sc.nextLine();
@@ -67,7 +68,7 @@ public class Client {
                     switch (commandParts[0]) {
                         case "ls":                                                                  // list files in client|server dir
                             if (commandParts.length != 2) {
-                                System.out.println("wrong syntax: ls client|server");
+                                System.out.println("Wrong Syntax: ls client|server");
                                 currentCommand = "";
                                 continue;
                             }
@@ -81,9 +82,9 @@ public class Client {
                             }
                             break;
 
-                        case "cd":                                                              // changes client|server dir
+                        case "cd":                                                                  // changes client|server dir
                             if (commandParts.length != 3) {
-                                System.out.println("wrong syntax: cd client|server *new_dir*");
+                                System.out.println("Wrong Syntax: cd client|server *new_dir*");
                                 currentCommand = "";
                                 continue;
                             }
@@ -103,7 +104,7 @@ public class Client {
 
                         case "get":                                                                 // get file from server
                             if (commandParts.length == 1) {
-                                System.out.println("wrong syntax: get *file_name*");
+                                System.out.println("Wrong Syntax: get *file_name*");
                                 currentCommand = "";
                                 continue;
                             }
@@ -120,9 +121,9 @@ public class Client {
                             }
                             break;
 
-                        case "send":                                                            // send file to server
+                        case "send":                                                                // send file to server
                             if (commandParts.length == 1) {
-                                System.out.println("wrong syntax: send *file_name*");
+                                System.out.println("Wrong Syntax: send *file_name*");
                                 currentCommand = "";
                                 continue;
                             }
@@ -130,7 +131,7 @@ public class Client {
                                 commandParts[1] = commandParts[1] + " " + commandParts[2];
                             }
 
-                            String fileName = clientDir + bars + commandParts[1];
+                            String fileName = clientDir + File.separator + commandParts[1];
 
 
                             File file = new File(fileName);
@@ -146,14 +147,14 @@ public class Client {
                             }
                             break;
 
-                        case "exit()":                                                        // client closes connection, server saves client current dir
+                        case "exit()":                                                              // client closes connection, server saves client current dir
                             out.writeUTF("CLOSE_CONNECTION");
                             System.exit(0);
                             break;
 
-                        case "cp":
+                        case "cp":                                                                  // changes the client password
                             if (commandParts.length != 2) {
-                                System.out.println("wrong syntax: cp *new_password*");
+                                System.out.println("Wrong Syntax: cp *new_password*");
                                 currentCommand = "";
                                 continue;
                             }
@@ -175,6 +176,7 @@ public class Client {
             } catch (IOException e) {
                 System.out.println("Connection lost, trying to connect to another server...");
             }
+            // swap ips and ports
             String tempHost = host;
             int tempSocket = serverSocket;
 
@@ -194,7 +196,7 @@ public class Client {
         try {
             String[] parts = command.split(" ", 3);
             if (!parts[0].equals("cd") || !parts[1].equals("client")) {
-                return "wrong syntax: cd client *folder_name*";
+                return "Wrong Syntax: cd client *folder_name*";
             }
 
             if (parts.length != 3) {
@@ -210,9 +212,9 @@ public class Client {
             }
 
             // go to a sub-folder
-            Path path = Paths.get(clientDir + bars + parts[2]);
+            Path path = Paths.get(clientDir + File.separator + parts[2]);
             if (Files.exists(path) && new File(path.toString()).isDirectory()) {
-                clientDir += bars + parts[2];
+                clientDir += File.separator + parts[2];
                 getShortDir();
                 return "";
             }
@@ -264,18 +266,15 @@ public class Client {
                 password = loginInfo.get(1);
             }
 
-            //String loginStr = "LOGIN:" + userName + ":" + password;
             out.writeUTF("LOGIN");
-            in.readUTF();
 
             // send username
             out.writeUTF(userName);
-            // receive login respond to username and ignores it
-            in.readUTF();
 
             // send password
             out.writeUTF(password);
-            // receive login respond to username and ignores it
+
+            // server respond to login attempt
             String respond = in.readUTF();
 
 
@@ -302,6 +301,7 @@ public class Client {
         return false;
     }
 
+    // creates a shorter version of the current client dir, shows only the 3 parents of the current folder
     private static void getShortDir() {
         int count = 0;
         File tempFile = new File(clientDir);
@@ -328,7 +328,7 @@ public class Client {
             byte [] buffer  = new byte [BLOCK_SIZE_FILE];
 
             InputStream is = fileSocket.getInputStream();
-            FileOutputStream fos = new FileOutputStream(clientDir + bars + strPort[2]);
+            FileOutputStream fos = new FileOutputStream(clientDir + File.separator + strPort[2]);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
             // write file
@@ -358,7 +358,7 @@ public class Client {
         try (Socket fileSocket = new Socket(host, Integer.parseInt(strPort[1]))){
 
             // open file and convert it to bin array
-            File fileSend = new File(clientDir + bars + strPort[2]);
+            File fileSend = new File(clientDir + File.separator + strPort[2]);
             byte[] mybytearray = new byte[(int) fileSend.length()];
 
             FileInputStream fis = new FileInputStream(fileSend);
