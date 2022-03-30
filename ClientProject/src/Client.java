@@ -9,6 +9,8 @@ import java.io.*;
 public class Client {
     private static int serverSocket;
     private static String host;
+    private static int serverSocketSecondary;
+    private static String hostSecondary;
     private static String bars = "/";
     public static String shortClientDir = new String();
     public static String clientDir = new String();
@@ -27,10 +29,16 @@ public class Client {
         } else {
             host = args[0];
             serverSocket = Integer.parseInt(args[1]);
+
+            hostSecondary = args[2];
+            serverSocketSecondary = Integer.parseInt(args[3]);
         }
 
-        for(int i = 0; i < 2; i++) {
+        int countFails = 0;
+
+        while(countFails < 2){
             try (Socket s = new Socket(host, serverSocket)) {
+                countFails = 0;
 
                 DataInputStream in = new DataInputStream(s.getInputStream());
                 DataOutputStream out = new DataOutputStream(s.getOutputStream());
@@ -165,15 +173,20 @@ public class Client {
 
 
             } catch (IOException e) {
-                host = args[2];
-                serverSocket = Integer.parseInt(args[3]);
-                if(i == 0)
-                    System.out.println("Main server offline, trying to connect to secundary server...");
-                else
-                    System.out.println("Failed to connect to any of the servers");
-                continue;
+                System.out.println("Connection lost, trying to connect to another server...");
             }
+            String tempHost = host;
+            int tempSocket = serverSocket;
+
+            host = hostSecondary;
+            serverSocket = serverSocketSecondary;
+
+            hostSecondary = tempHost;
+            serverSocketSecondary = tempSocket;
+
+            countFails++;
         }
+        System.out.println("Failed to connect to any server");
     }
 
     // changes the client dir
