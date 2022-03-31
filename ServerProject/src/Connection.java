@@ -105,7 +105,7 @@ class Connection extends Thread {
                         break;
 
                     case "GET":                                                                                         // client gets a file from server current dir
-                        String fileName = Server.baseDirServer + ci.directoryS + File.separator + command.substring(command.indexOf(":") + 1, command.length());
+                        String fileName = Server.baseDirServer + ci.folderName + File.separator + ci.directoryS + File.separator + command.substring(command.indexOf(":") + 1, command.length());
                         sendFile(fileName);
 
                         break;
@@ -146,6 +146,7 @@ class Connection extends Thread {
 
     // changes the server dir
     private String changeCurDir(String command) {
+        System.out.println("command" + command);
         try {
             String newDir = command.substring(command.indexOf("server") + 7, command.length());
 
@@ -157,24 +158,28 @@ class Connection extends Thread {
             if (newDir.contains("..")) {
 
                 // verify if user already in base dir
-                Path path = Paths.get(ci.directoryS);
-                if (!path.toString().equals("") && path.toString().equals("Home")) {
-                    return "server:" + path + ">";
+                Path path = Paths.get(ci.folderName + File.separator + ci.directoryS);
+                System.out.println("path: " + path);
+                if (!path.toString().equals("") && path.toString().equals(ci.folderName + File.separator + "Home")) {
+                    return "server:" + ci.directoryS + ">";
                 } else {
+                    System.out.println("parent");
                     ci.directoryS = path.getParent().toString();
+                    ci.directoryS =  ci.directoryS.substring(ci.directoryS.indexOf(File.separator) + 1, ci.directoryS.length());
+                    System.out.println("ci.directoryS: " + ci.directoryS);
                     return "server:" + ci.directoryS + ">";
                 }
             }
 
             // go to a sub-folder
-            File folder = new File(Server.baseDirServer + ci.directoryS + File.separator + newDir);
+            File folder = new File(Server.baseDirServer + ci.folderName + File.separator + ci.directoryS + File.separator + newDir);
             if (folder.exists() && folder.isDirectory()) {
                 ci.directoryS = ci.directoryS + File.separator + newDir;
+                System.out.println(ci.directoryS);
 
                 return "server:" + ci.directoryS + ">";
             } else if (!folder.exists()) {
                 if (folder.mkdir()) {
-                    System.out.println(folder);
                     ci.directoryS = folder.toString();
                     return "server:" + ci.directoryS + ">";
                 } else {
@@ -189,10 +194,10 @@ class Connection extends Thread {
     }
 
     // list files and folder on the current server dir
-    private String listFilesCurDir() {
-        File[] files = new File(Server.baseDirServer + ci.directoryS).listFiles();
+    private String listFilesCurDir() {;
+        File[] files = new File(Server.baseDirServer + ci.folderName + File.separator + ci.directoryS).listFiles();
         String str = "";
-        System.out.println("ls: " + Server.baseDirServer + ci.directoryS);
+        System.out.println("ls: " + Server.baseDirServer + ci.folderName + File.separator + ci.directoryS);
 
         if (files == null)
             return str;
@@ -261,7 +266,7 @@ class Connection extends Thread {
             byte [] buffer  = new byte [BLOCK_SIZE_FILE];
             InputStream is = fileSocket.getInputStream();
 
-            FileOutputStream fos = new FileOutputStream(Server.baseDirServer + ci.directoryS + File.separator + fileName);
+            FileOutputStream fos = new FileOutputStream(Server.baseDirServer + ci.folderName + File.separator + ci.directoryS + File.separator + fileName);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
             // receive file, reading it by chunks
@@ -280,7 +285,7 @@ class Connection extends Thread {
             fileS.close();
 
             // add file to arraylist newFiles
-            UDPConnectionListener.newFiles.add(ci.directoryS + File.separator + fileName);
+            UDPConnectionListener.newFiles.add(ci.folderName + File.separator + ci.directoryS + File.separator + fileName);
 
 
         } catch (IOException e) {

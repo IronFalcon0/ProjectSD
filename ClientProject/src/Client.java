@@ -156,12 +156,14 @@ public class Client {
                             if (commandParts.length != 2) {
                                 System.out.println("Wrong Syntax: cp *new_password*");
                                 currentCommand = "";
+
                                 continue;
                             }
                             out.writeUTF(commandParts[0]);
                             out.writeUTF(commandParts[1]);
                             String respond = in.readUTF();
                             System.out.println(respond);
+                            loginInfo.clear();
                             while (!Login(in, out)) ;
                             break;
 

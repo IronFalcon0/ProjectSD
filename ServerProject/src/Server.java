@@ -116,23 +116,24 @@ public class Server {
         try {
             File userInfoFile = new File(fileName);
             Scanner scannerFile = new Scanner(userInfoFile);
+            scannerFile.nextLine();
 
             while (scannerFile.hasNextLine()) {
                 String line = scannerFile.nextLine();
                 String[] user = line.split(" ");
 
                 ClientInfo ci;
-                if (user.length == 2) {
-                    ci = new ClientInfo(user[0], user[1]);
-                } else {
+                if (user.length == 3) {
                     ci = new ClientInfo(user[0], user[1], user[2]);
+                } else {
+                    ci = new ClientInfo(user[0], user[1], user[2], user[3]);
                 }
 
                 clientsInfo.add(ci);
 
 
                 // verify if user folder already exists. If not, creates it
-                Path path = Paths.get(baseDirServer1 + "Home");
+                Path path = Paths.get(baseDirServer1 + File.separator + ci.folderName + File.separator + "Home");
                 if (!Files.exists(path)) {
                     try {
                         Files.createDirectories(path);
@@ -142,7 +143,7 @@ public class Server {
                 }
 
                 // do the same for the secondary server
-                path = Paths.get(baseDirServer2 + "Home");
+                path = Paths.get(baseDirServer2 + File.separator + ci.folderName + File.separator + "Home");
                 if (!Files.exists(path)) {
                     try {
                         Files.createDirectories(path);
@@ -165,8 +166,9 @@ public class Server {
     public static void saveUserInfo() {
         try {
             FileWriter userInfoFile = new FileWriter(usersInfoStr);
+            userInfoFile.write("Username: Password: FolderName: LastDir:\n");
             for (ClientInfo c: clientsInfo) {
-                userInfoFile.write(c.name + " " + c.password + " " + c.directoryS + "\n");
+                userInfoFile.write(c.name + " " + c.password + " " + c.folderName + " " + c.directoryS + "\n");
             }
             userInfoFile.close();
         } catch (IOException e) {
