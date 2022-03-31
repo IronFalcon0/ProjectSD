@@ -23,7 +23,7 @@ public class Client {
     public static void main(String args[]) {
 
         if (args.length != 4) {
-            System.out.println("Wrong Syntax: java Client *mainServerIP* *mainServerPort* *secServerIP* *secServerPort*");
+            System.out.println("Wrong Syntax: java -jar terminal.jar *mainServerIP* *mainServerPort* *secServerIP* *secServerPort*");
             return;
         } else {
             host = args[0];

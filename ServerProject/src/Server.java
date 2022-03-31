@@ -26,7 +26,7 @@ public class Server {
     public static void main(String args[]) throws InterruptedException {
 
         if (args.length != 1) {
-            System.out.println("Wrong Syntax: java Server *folder (0|1)*");
+            System.out.println("Wrong Syntax: java -jar ucDrive.jar *folder (0|1)*");
             System.exit(0);
         }
 
