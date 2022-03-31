@@ -22,7 +22,8 @@
     <list default="true" id="c01a3e36-4547-4cbd-8c9a-233c0afa6a8d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ClientProject/src/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/ClientProject/src/Client.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClientProject/src/terminal.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ServerProject/src/Connection.java" beforeDir="false" afterPath="$PROJECT_DIR$/ServerProject/src/Connection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ServerProject/src/build/ucDrive.jar" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,6 +73,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
     <state x="385" y="196" width="670" height="676" key="search.everywhere.popup" timestamp="1648652332750">

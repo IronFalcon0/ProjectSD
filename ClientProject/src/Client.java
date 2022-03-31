@@ -199,10 +199,6 @@ public class Client {
                 return "Wrong Syntax: cd client *folder_name*";
             }
 
-            if (parts.length != 3) {
-                return "invalid path";
-            }
-
             // go to parent folder
             if (parts[2].contains("..")) {
                 Path path = Paths.get(clientDir).getParent();
