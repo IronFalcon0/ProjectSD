@@ -159,14 +159,11 @@ class Connection extends Thread {
 
                 // verify if user already in base dir
                 Path path = Paths.get(ci.folderName + File.separator + ci.directoryS);
-                System.out.println("path: " + path);
                 if (!path.toString().equals("") && path.toString().equals(ci.folderName + File.separator + "Home")) {
                     return "server:" + ci.directoryS + ">";
                 } else {
-                    System.out.println("parent");
                     ci.directoryS = path.getParent().toString();
-                    ci.directoryS =  ci.directoryS.substring(ci.directoryS.indexOf(File.separator) + 1, ci.directoryS.length());
-                    System.out.println("ci.directoryS: " + ci.directoryS);
+                    ci.directoryS =  ci.directoryS.substring(ci.directoryS.indexOf(ci.folderName) + ci.folderName.length() + 1, ci.directoryS.length());
                     return "server:" + ci.directoryS + ">";
                 }
             }
@@ -175,12 +172,12 @@ class Connection extends Thread {
             File folder = new File(Server.baseDirServer + ci.folderName + File.separator + ci.directoryS + File.separator + newDir);
             if (folder.exists() && folder.isDirectory()) {
                 ci.directoryS = ci.directoryS + File.separator + newDir;
-                System.out.println(ci.directoryS);
 
                 return "server:" + ci.directoryS + ">";
             } else if (!folder.exists()) {
-                if (folder.mkdir()) {
+                if (folder.mkdirs()) {
                     ci.directoryS = folder.toString();
+                    ci.directoryS =  ci.directoryS.substring(ci.directoryS.indexOf(ci.folderName) + ci.folderName.length() + 1, ci.directoryS.length());
                     return "server:" + ci.directoryS + ">";
                 } else {
                     return "couldn't create folder";
