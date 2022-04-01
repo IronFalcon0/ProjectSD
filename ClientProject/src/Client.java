@@ -1,4 +1,5 @@
 import java.net.*;
+import java.util.regex.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,7 +23,7 @@ public class Client {
 
     public static void main(String args[]) {
 
-        if (args.length != 4) {
+        if (args.length != 4 || !args[1].matches("[0-9]{4}") || !args[3].matches("[0-9]{4}")) {
             System.out.println("Wrong Syntax: java -jar terminal.jar *mainServerIP* *mainServerPort* *secServerIP* *secServerPort*");
             return;
         } else {
@@ -99,7 +100,11 @@ public class Client {
                                 if (!resp.equals("")) {
                                     System.out.println(resp);
                                 }
+                            } else{
+                                System.out.println("Wrong Syntax: cd client|server *new_dir*");
+                                currentCommand = "";
                             }
+
                             break;
 
                         case "get":                                                                 // get file from server
@@ -139,7 +144,8 @@ public class Client {
                                 out.writeUTF("SEND:" + commandParts[1]);
                                 String res = in.readUTF();
                                 if (res.contains("CLIENT_CONNECT_SEND")) {
-                                    sendFile(res);
+                                    if(!sendFile(res))
+                                        continue;
                                 }
 
                             } else {
@@ -259,6 +265,7 @@ public class Client {
 
                 if (userName.isEmpty()) userName = "";
                 if (password.isEmpty()) password = "";
+                clientDir = System.getProperty("user.dir");
             } else{
                 userName = loginInfo.get(0);
                 password = loginInfo.get(1);
@@ -282,7 +289,6 @@ public class Client {
             } else {
                 System.out.println("Login with success");
                 System.out.println("server:" + respond + ">");
-                clientDir = System.getProperty("user.dir");
                 loginInfo.clear();
                 loginInfo.add(userName);
                 loginInfo.add(password);
@@ -349,7 +355,7 @@ public class Client {
     }
 
     // send file to server
-    private static void sendFile(String respond) {
+    private static boolean sendFile(String respond) {
         String[] strPort = respond.split(":");
 
         // connect with server by the port given
@@ -368,7 +374,8 @@ public class Client {
 
             // send file
             OutputStream os = fileSocket.getOutputStream();
-            os.write(mybytearray,0,mybytearray.length);
+
+            os.write(mybytearray, 0, mybytearray.length);
             os.flush();
 
 
@@ -377,11 +384,12 @@ public class Client {
             os.close();
 
             System.out.println("File Sent");
+            return true;
 
         } catch(IOException e) {
             System.out.println("Send File Connection:" + e.getMessage());
+            return false;
         }
-
     }
 
 }

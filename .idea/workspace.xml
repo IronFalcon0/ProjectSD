@@ -23,7 +23,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ClientProject/src/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/ClientProject/src/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ServerProject/src/Connection.java" beforeDir="false" afterPath="$PROJECT_DIR$/ServerProject/src/Connection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ServerProject/src/build/ucDrive.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ServerProject/src/Server/user1/Home/sr71.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/ServerProject/src/Server/user1/Home/sr71.jpg" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,5 +80,24 @@
       <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="385" y="196" width="670" height="676" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1648652332750" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/ServerProject/src/Connection.java</url>
+          <line>257</line>
+          <properties class="Connection" method="getFile">
+            <option name="EMULATED" value="true" />
+          </properties>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/ServerProject/src/Connection.java</url>
+          <line>282</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

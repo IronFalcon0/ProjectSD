@@ -272,8 +272,9 @@ class Connection extends Thread {
                 bos.write(buffer, 0, bytesRead);
                 bos.flush();
                 bytesRead = is.read(buffer, 0, buffer.length);
-
             }
+
+            out.writeUTF();
 
             System.out.println("File received: " + fileName);
             // close streams
@@ -288,7 +289,6 @@ class Connection extends Thread {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
     }
 
 }
