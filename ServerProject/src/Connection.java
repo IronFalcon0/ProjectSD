@@ -275,7 +275,6 @@ class Connection extends Thread {
                 bos.write(buffer, 0, bytesRead);
                 bos.flush();
                 bytesRead = is.read(buffer, 0, buffer.length);
-                Thread.sleep(500);
             }
 
             out.writeUTF();
@@ -292,10 +291,7 @@ class Connection extends Thread {
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
-        }catch (InterruptedException e) {
-            e.printStackTrace();
         }
-
     }
 
 }

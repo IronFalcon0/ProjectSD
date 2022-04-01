@@ -1,4 +1,5 @@
 import java.net.*;
+import java.util.regex.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,7 +23,7 @@ public class Client {
 
     public static void main(String args[]) {
 
-        if (args.length != 4) {
+        if (args.length != 4 || !args[1].matches("[0-9]{4}") || !args[3].matches("[0-9]{4}")) {
             System.out.println("Wrong Syntax: java -jar terminal.jar *mainServerIP* *mainServerPort* *secServerIP* *secServerPort*");
             return;
         } else {
@@ -340,7 +341,6 @@ public class Client {
                 bos.write(buffer, 0, bytesRead);
                 bos.flush();
                 bytesRead = is.read(buffer, 0, buffer.length);
-                Thread.sleep(500);
             }
 
             // close streams
@@ -351,10 +351,7 @@ public class Client {
 
         } catch(IOException e) {
             System.out.println("Receive File Connection:" + e.getMessage());
-        }catch (InterruptedException e) {
-            e.printStackTrace();
         }
-        /* */
     }
 
     // send file to server
@@ -378,7 +375,6 @@ public class Client {
             // send file
             OutputStream os = fileSocket.getOutputStream();
 
-            Thread.sleep(10000);
             os.write(mybytearray, 0, mybytearray.length);
             os.flush();
 
@@ -393,11 +389,7 @@ public class Client {
         } catch(IOException e) {
             System.out.println("Send File Connection:" + e.getMessage());
             return false;
-        }catch (InterruptedException e) {
-            e.printStackTrace();
-            return false;
         }
-
     }
 
 }
