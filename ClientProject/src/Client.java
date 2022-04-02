@@ -30,7 +30,7 @@ public class Client {
     public static void main(String args[]) {
 
         if (args.length != 4 || !args[1].matches("[0-9]+") || !args[3].matches("[0-9]+")) {
-            System.out.println("Wrong Syntax: java -jar terminal.jar *mainServerIP* *mainServerPort* *secServerIP* *secServerPort*");
+            System.out.println("Wrong Syntax: java -jar terminal.jar *serverIP1* *serverPort1* *serverIP2* *serverPort2*");
             return;
         } else {
             host = args[0];
@@ -40,7 +40,7 @@ public class Client {
             serverSocketSecondary = Integer.parseInt(args[3]);
 
             if (serverSocket < 1024 || serverSocket > 65535 || serverSocketSecondary < 1024 || serverSocketSecondary > 65535) {
-                System.out.println("Wrong Syntax: java -jar terminal.jar *mainServerIP* *mainServerPort* *secServerIP* *secServerPort*");
+                System.out.println("Wrong Syntax: java -jar terminal.jar *serverIP1* *serverPort1* *serverIP2* *serverPort2*");
                 return;
             }
         }

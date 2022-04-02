@@ -10,69 +10,63 @@
 :::::::::::::::::::::::: ucDrive: Repositório de ficheiros na UC ::::::::::::::::::
 
 
--> Execução do programa
+-> Run the program
 
-    A seguir seguem-se os comandos necessários para a execução do programa.
+	To run the ucDrive.jar use the following command:
 
-    - Servidor Primário 
-    
-        java -jar ucDrive.jar 0
+		java -jar ucDrive.jar *folderID*
 
-
-    - Servidor Secundário
-
-        java -jar ucDrive.jar 1
-
-    Onde:
-    * O último parâmetro (0 ou 1) identifica a pasta onde o servidor irá guardar todas as
-    diretorias dos clientes.
-
-    - clientes
-
-    java -jar terminal.jar *mainServerIP* *mainServerPort* *secServerIP* *secServerPort*
-
-    Onde: 
-    * mainServerIP - Ip do servidor principal;
-    * mainServerPort - Porto do servidor principal
-    * secServerIP - Ip do servidor secundário;
-    * secServerPort - Porto do servidor secundário;
+	Where:
+	folderID 	-> Identifies which folder the server can access. There will be created two folders to be used as storage space: "Server" and "Server2". To select the first one use 0, for the second use 1. The 2 servers need to have different values;
 
 
--> Comandos 
+	To run the terminal.jar use the following command:
+	
+		java -jar terminal.jar *serverIP1* *serverPort1* *serverIP2* *serverPort2*
 
-    Neste projeto, foram definidos os seguintes comandos:
+    Where:
+    serverIP1 		-> server1 IP;
+    serverPort1 	-> server1 Port;
+    serverIP2 		-> server2 IP;
+    serverPort2 	-> server2 Port;
 
 
-        Listagem de ficheiros na pasta do cliente
-            
-            ls client
+===================================================================================
 
-        Listagem de ficheiros na pasta do servidor 
-            
-            ls server
 
-        Alteração da diretoria do cliente 
-        
-            cd client *nome da diretoria*
+-> User info for login is the following:
+	Username: user1		Password: 1234
+	Username: user2		Password: ss11
 
-        Alteração da diretoria do servidor
-        
-            cd server *nome do ficheiro*
 
-        Encerrar o terminal
-            
-            exit()
+-> Available commands of terminal.jar:
 
-        Alterar a palavra passe do utilizador
-        
-            cp *nova palavra passe*
+	ls client
+		-> list files and folders in the current client dir
 
-        Obtenção de um ficheiro do servidor
-        
-            get *nome do ficheiro*
+	ls server
+		-> list files and folders in the current server dir
 
-        Envio de um ficheiro para o servidor
-        
-            send *nome do ficheiro*
+	cd client *dirName*
+ 		-> change the directory of the client
+		-> '..' go to parent folder
+
+	cd server *dirName*
+ 		-> change the directory of the server
+		-> if folder doesn't exits creates it
+		-> '..' go to parent folder
+
+	exit()
+		-> closes conection client-server
+
+	cp *newPassword*
+ 		-> changes user's password
+
+	get *fileName*
+		-> get file from the current server dir to the current client dir
+
+	send *fileName*
+		-> send file from the current client dir to the current server dir
+
 
 ===================================================================================
