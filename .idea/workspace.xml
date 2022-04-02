@@ -83,7 +83,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/ServerProject/src/Connection.java</url>
-          <line>257</line>
+          <line>259</line>
           <properties class="Connection">
             <option name="EMULATED" value="true" />
           </properties>
@@ -91,7 +91,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/ServerProject/src/Connection.java</url>
-          <line>282</line>
+          <line>285</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
