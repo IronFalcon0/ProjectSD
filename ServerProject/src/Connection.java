@@ -274,8 +274,6 @@ class Connection extends Thread {
                 bytesRead = is.read(buffer, 0, buffer.length);
             }
 
-            out.writeUTF();
-
             System.out.println("File received: " + fileName);
             // close streams
             fos.close();
