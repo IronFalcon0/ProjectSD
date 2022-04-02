@@ -1,5 +1,11 @@
+/*
+Departamento Eng. Informatica - FCTUC
+    Sistemas Distribuídos - 2021/22
+    ................................................ Rodrigo Francisco Ferreira \ nº2019220060
+    ................................................ Sofia Botelho Vieira Alves \ nº2019227240
+ */
+
 import java.net.*;
-import java.util.regex.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -373,9 +379,6 @@ public class Client {
             FileInputStream fis = new FileInputStream(fileSend);
             BufferedInputStream bis = new BufferedInputStream(fis);
             bis.read(mybytearray,0,mybytearray.length);
-
-            OutputStream output = fileSocket.getOutputStream();
-            DataOutputStream dout = new DataOutputStream(output);
 
             // send file
             OutputStream os = fileSocket.getOutputStream();

@@ -1,3 +1,10 @@
+/*
+Departamento Eng. Informatica - FCTUC
+    Sistemas Distribuídos - 2021/22
+    ................................................ Rodrigo Francisco Ferreira \ nº2019220060
+    ................................................ Sofia Botelho Vieira Alves \ nº2019227240
+ */
+
 import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;

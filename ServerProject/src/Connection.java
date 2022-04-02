@@ -1,3 +1,10 @@
+/*
+Departamento Eng. Informatica - FCTUC
+    Sistemas Distribuídos - 2021/22
+    ................................................ Rodrigo Francisco Ferreira \ nº2019220060
+    ................................................ Sofia Botelho Vieira Alves \ nº2019227240
+ */
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -146,7 +153,6 @@ class Connection extends Thread {
 
     // changes the server dir
     private String changeCurDir(String command) {
-        System.out.println("command" + command);
         try {
             String newDir = command.substring(command.indexOf("server") + 7, command.length());
 
@@ -231,10 +237,6 @@ class Connection extends Thread {
             BufferedInputStream bis = new BufferedInputStream(fis);
             bis.read(mybytearray,0,mybytearray.length);
 
-
-            OutputStream output = fileSocket.getOutputStream();
-            DataOutputStream dout = new DataOutputStream(output);
-
             OutputStream os = fileSocket.getOutputStream();
             os.write(mybytearray,0,mybytearray.length);
             os.flush();
@@ -273,6 +275,7 @@ class Connection extends Thread {
                 bos.flush();
                 bytesRead = is.read(buffer, 0, buffer.length);
             }
+
 
             System.out.println("File received: " + fileName);
             // close streams
