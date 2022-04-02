@@ -11,6 +11,7 @@
 
 
 -> Run the program
+	To run the program currectly there should be 2 ucDrive.jar instances and at least one terminal.jar running
 
 	To run the ucDrive.jar use the following command:
 
@@ -32,6 +33,13 @@
     serverIP2 		-> server2 IP;
     serverPort2 	-> server2 Port;
 
+-> The default values are:
+	serverIP1 	-> localhost
+	serverPort1 	-> 6000
+	serverIP2 	-> localhost
+	serverPort2 	-> 6001
+
+	This values can be changed in the conf_file after running the ucDrive.jar for the first time
 
 ===================================================================================
 
