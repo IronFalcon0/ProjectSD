@@ -37,7 +37,17 @@ public class Server {
             System.exit(0);
         }
 
+        // check if file was already taken from the jar
+        File tempFile = new File(baseDirConf);
+        if (!tempFile.exists())
+            loadJarToFile(baseDirConf);
+
         loadConfigurations();
+
+        tempFile = new File(usersInfoStr);
+        if (!tempFile.exists())
+            loadJarToFile(usersInfoStr);
+
         loadUserInfo(usersInfoStr);
 
         try {
@@ -115,6 +125,27 @@ public class Server {
 
         } catch (FileNotFoundException e) {
             System.out.println("Error loading usersInfo: " +e.getMessage());
+        }
+    }
+
+    private static void loadJarToFile(String fileName) {
+        System.out.println("extracting...");
+        try (InputStream in = Server.class.getResourceAsStream(fileName);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(in))){
+
+            FileWriter infoFile = new FileWriter(fileName);
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                infoFile.write(line + "\n");
+            }
+
+            infoFile.flush();
+            infoFile.close();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

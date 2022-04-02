@@ -19,6 +19,8 @@
 	Where:
 	folderID 	-> Identifies which folder the server can access. There will be created two folders to be used as storage space: "Server" and "Server2". To select the first one use 0, for the second use 1. The 2 servers need to have different values;
 
+	The first time the ucDrive.jar is executed, it extracts the conf_file and users_info
+
 
 	To run the terminal.jar use the following command:
 	
